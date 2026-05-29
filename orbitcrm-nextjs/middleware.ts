@@ -1,0 +1,44 @@
+// middleware.ts — refreshes the Supabase session on every request and
+// redirects unauthenticated users away from /dashboard.
+import { createServerClient } from '@supabase/ssr';
+import { NextResponse, type NextRequest } from 'next/server';
+
+export async function middleware(req: NextRequest) {
+  let res = NextResponse.next({ request: req });
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return req.cookies.getAll();
+        },
+        setAll(cookiesToSet: { name: string; value: string; options?: any }[]) {
+          cookiesToSet.forEach(({ name, value }) => req.cookies.set(name, value));
+          res = NextResponse.next({ request: req });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            res.cookies.set(name, value, options)
+          );
+        },
+      },
+    }
+  );
+
+  const { data: { user } } = await supabase.auth.getUser();
+  const path = req.nextUrl.pathname;
+
+  // protect the app
+  if (!user && (path.startsWith('/dashboard') || path.startsWith('/onboarding'))) {
+    return NextResponse.redirect(new URL('/login', req.url));
+  }
+  // bounce logged-in users away from the login page
+  if (user && path === '/login') {
+    return NextResponse.redirect(new URL('/dashboard', req.url));
+  }
+  return res;
+}
+
+export const config = {
+  matcher: ['/dashboard/:path*', '/onboarding/:path*', '/login'],
+};

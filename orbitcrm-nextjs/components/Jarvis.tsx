@@ -185,7 +185,7 @@ export default function Jarvis() {
     const r = new SR();
     r.lang = 'en-US'; r.interimResults = false; r.continuous = false;
     r.onresult = (e: any) => { const t = e.results[0][0].transcript.trim(); if (t) handle(t); };
-    r.onend = () => { if (mode === 'listening') setMode('idle'); };
+    r.onend = () => { setMode((m) => (m === 'listening' ? 'idle' : m)); };
     r.onerror = (ev: any) => { setMode('idle'); if (ev.error === 'not-allowed') speak('I need microphone permission, sir.'); };
     recogRef.current = r;
     setMode('listening'); setTranscript('');

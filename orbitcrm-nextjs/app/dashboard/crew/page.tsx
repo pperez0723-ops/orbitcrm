@@ -1,22 +1,22 @@
 'use client';
 // app/dashboard/crew/page.tsx
-// Orbit Workstation — pixel-art office scene inspired by agent-office.
-// Four crew members sit at pixel desks. When working they animate (typing, thinking, walking).
-// Live SSE terminal log scrolls on the right. All self-contained CSS, no external deps.
+// Orbit Workstation — pixel-art office scene, agent-office style.
+// Canvas-rendered office with characters that ACTUALLY WALK between desks,
+// idle-bob, type, think — using the exact agent-office color palette.
 
 import { useRef, useState, useEffect, useCallback } from 'react';
 
-type Line = { cls: string; text: string; agent?: string };
-type AgentState = 'idle' | 'thinking' | 'working' | 'walking' | 'done';
+// ─── Types ────────────────────────────────────────────────────────────────
+type Line  = { cls: string; text: string };
+type AState = 'idle' | 'thinking' | 'working' | 'walking' | 'done';
 
-const CREW = {
-  director:   { name: 'Director',    role: 'coordinator',          color: '#e8303a', desk: { x: 18, y: 12 }, avatar: 0 },
-  researcher: { name: 'Researcher',  role: 'intel · analysis',     color: '#37e0c5', desk: { x: 62, y: 12 }, avatar: 1 },
-  webdev:     { name: 'Web Dev',     role: 'sites · ui',           color: '#a78bfa', desk: { x: 18, y: 58 }, avatar: 2 },
-  appdev:     { name: 'App Dev',     role: 'backend · automations', color: '#f4b942', desk: { x: 62, y: 58 }, avatar: 3 },
-} as const;
-
-type CrewKey = keyof typeof CREW;
+// ─── Crew config ─────────────────────────────────────────────────────────
+const CREW_CONFIG = [
+  { id: 'director',   name: 'Director',    role: 'coordinator',          color: '#e8303a', deskGX: 4,  deskGY: 3  },
+  { id: 'researcher', name: 'Researcher',  role: 'intel · analysis',     color: '#37e0c5', deskGX: 16, deskGY: 3  },
+  { id: 'webdev',     name: 'Web Dev',     role: 'sites · ui',           color: '#a78bfa', deskGX: 4,  deskGY: 14 },
+  { id: 'appdev',     name: 'App Dev',     role: 'backend · automations', color: '#f4b942', deskGX: 16, deskGY: 14 },
+];
 
 const QUICK = [
   'Create a contact named Maria Lopez at Brightstar Realty and add a follow-up task',
@@ -25,182 +25,638 @@ const QUICK = [
   'Draft a lead-capture landing page for Orbit',
 ];
 
-const EMOTES: Record<AgentState, string> = {
-  idle: '😌', thinking: '💡', working: '💻', walking: '🚶', done: '✅',
+const EMOTES: Record<AState, string> = {
+  idle:'😌', thinking:'💡', working:'💻', walking:'🚶', done:'✅',
 };
 
-// ── Pixel-art SVG pieces ───────────────────────────────────────────────────
-function PixelDesk({ x, y, color }: { x: number; y: number; color: string }) {
-  return (
-    <g transform={`translate(${x},${y})`}>
-      {/* desk surface */}
-      <rect x="0" y="8" width="34" height="20" rx="2" fill="#1e1528" stroke="#3a2540" strokeWidth="1.5"/>
-      <rect x="2" y="10" width="30" height="12" rx="1" fill="#140f1e" stroke={color} strokeWidth="0.5" opacity="0.7"/>
-      {/* monitor */}
-      <rect x="8" y="0" width="18" height="12" rx="1.5" fill="#0a0812" stroke={color} strokeWidth="1"/>
-      <rect x="10" y="2" width="14" height="8" rx="0.5" fill="#0d1a2e"/>
-      {/* screen glow lines */}
-      <rect x="11" y="3" width="6" height="1.5" rx="0.5" fill={color} opacity="0.9"/>
-      <rect x="11" y="5.5" width="9" height="1" rx="0.5" fill={color} opacity="0.5"/>
-      <rect x="11" y="7" width="7" height="1" rx="0.5" fill={color} opacity="0.4"/>
-      {/* monitor stand */}
-      <rect x="15" y="12" width="4" height="3" fill="#1e1528"/>
-      {/* keyboard */}
-      <rect x="3" y="18" width="16" height="6" rx="1" fill="#1a1228" stroke="#33204a" strokeWidth="0.5"/>
-      <rect x="4" y="19" width="4" height="1.5" rx="0.3" fill="#2a1f40"/>
-      <rect x="9" y="19" width="4" height="1.5" rx="0.3" fill="#2a1f40"/>
-      <rect x="14" y="19" width="4" height="1.5" rx="0.3" fill="#2a1f40"/>
-      <rect x="4" y="21.5" width="13" height="1.5" rx="0.3" fill="#2a1f40"/>
-      {/* mouse */}
-      <rect x="22" y="19" width="8" height="5" rx="2" fill="#1a1228" stroke="#33204a" strokeWidth="0.5"/>
-      {/* legs */}
-      <rect x="2" y="28" width="3" height="6" rx="1" fill="#140f1e"/>
-      <rect x="29" y="28" width="3" height="6" rx="1" fill="#140f1e"/>
-    </g>
-  );
+// ─── Canvas renderer ─────────────────────────────────────────────────────
+const TILE = 16; // px per grid cell
+const COLS = 26;
+const ROWS = 22;
+const CW   = COLS * TILE; // 416
+const CH   = ROWS * TILE; // 352
+
+interface Agent {
+  id: string; name: string; role: string; color: string;
+  // pixel positions (can be fractional during tween)
+  px: number; py: number;
+  // target pixel position
+  tx: number; ty: number;
+  // desk pixel position
+  deskPx: number; deskPy: number;
+  state: AState;
+  emote: string;
+  emoteTimer: number;
+  // walk cycle frame
+  walkFrame: number; walkTimer: number;
+  // idle bob
+  bobPhase: number;
+  // typing frame
+  typeFrame: number; typeTimer: number;
 }
 
-function PixelChair({ x, y, color }: { x: number; y: number; color: string }) {
-  return (
-    <g transform={`translate(${x},${y})`}>
-      <rect x="2" y="4" width="12" height="8" rx="2" fill="#1a1228" stroke={color} strokeWidth="0.7" opacity="0.8"/>
-      <rect x="0" y="12" width="16" height="3" rx="1.5" fill="#140f1e" stroke="#33204a" strokeWidth="0.5"/>
-      <rect x="6" y="15" width="4" height="5" fill="#140f1e"/>
-      <rect x="2" y="20" width="5" height="2" rx="1" fill="#1a1228"/>
-      <rect x="9" y="20" width="5" height="2" rx="1" fill="#1a1228"/>
-    </g>
-  );
+function makeAgent(cfg: typeof CREW_CONFIG[0]): Agent {
+  const px = cfg.deskGX * TILE + 8;
+  const py = cfg.deskGY * TILE - 8;
+  return {
+    id: cfg.id, name: cfg.name, role: cfg.role, color: cfg.color,
+    px, py, tx: px, ty: py,
+    deskPx: cfg.deskGX * TILE, deskPy: cfg.deskGY * TILE,
+    state: 'idle', emote: EMOTES.idle, emoteTimer: 0,
+    walkFrame: 0, walkTimer: 0,
+    bobPhase: Math.random() * Math.PI * 2,
+    typeFrame: 0, typeTimer: 0,
+  };
 }
 
-function PixelAgent({ x, y, color, state, avatar }: { x: number; y: number; color: string; state: AgentState; avatar: number }) {
-  // 4 distinct pixel avatar hair/shirt combos
-  const hair = ['#4a2820', '#2a4a38', '#1e2a4a', '#3a2a0a'];
-  const shirt = [color, color, color, color];
-  const isTyping = state === 'working';
-  const isThinking = state === 'thinking';
-  const isWalking = state === 'walking';
+// ─── Draw helpers ─────────────────────────────────────────────────────────
+function drawOffice(ctx: CanvasRenderingContext2D, t: number) {
+  const g = ctx;
 
-  return (
-    <g transform={`translate(${x},${y})`} className={`pixel-agent pixel-${state}`}>
-      {/* shadow */}
-      <ellipse cx="8" cy="28" rx="7" ry="2" fill="#000" opacity="0.25"/>
-      {/* legs */}
-      <rect x="4" y="20" width="4" height="8" rx="1" fill="#1e1528" className={isWalking ? 'walk-l' : ''}/>
-      <rect x="9" y="20" width="4" height="8" rx="1" fill="#1e1528" className={isWalking ? 'walk-r' : ''}/>
-      {/* body */}
-      <rect x="2" y="10" width="14" height="12" rx="3" fill={shirt[avatar]}/>
-      {/* collar */}
-      <rect x="6" y="10" width="5" height="3" rx="1" fill="#d9b29b"/>
-      {/* arms */}
-      <rect x="-1" y="11" width="4" height="9" rx="2" fill={shirt[avatar]} className={isTyping ? 'type-l' : ''}/>
-      <rect x="15" y="11" width="4" height="9" rx="2" fill={shirt[avatar]} className={isTyping ? 'type-r' : ''}/>
-      {/* hands */}
-      <rect x="-1" y="19" width="4" height="3" rx="1.5" fill="#d9b29b"/>
-      <rect x="15" y="19" width="4" height="3" rx="1.5" fill="#d9b29b"/>
-      {/* neck */}
-      <rect x="6" y="7" width="5" height="4" rx="1.5" fill="#d9b29b"/>
-      {/* head */}
-      <rect x="2" y="-2" width="13" height="11" rx="4" fill="#d9b29b"/>
-      {/* hair */}
-      <rect x="2" y="-2" width="13" height="5" rx="3" fill={hair[avatar]}/>
-      <rect x="2" y="-2" width="4" height="8" rx="2" fill={hair[avatar]}/>
-      {/* eyes */}
-      <rect x="5" y="2" width="2" height="2" rx="0.5" fill="#241a14" className={isThinking ? 'eye-blink' : ''}/>
-      <rect x="10" y="2" width="2" height="2" rx="0.5" fill="#241a14" className={isThinking ? 'eye-blink' : ''}/>
-      {/* thinking dots */}
-      {isThinking && (
-        <>
-          <circle cx="4" cy="-6" r="1" fill={color} className="think-dot1"/>
-          <circle cx="8" cy="-9" r="1.5" fill={color} className="think-dot2"/>
-          <circle cx="13" cy="-7" r="1" fill={color} className="think-dot3"/>
-        </>
-      )}
-    </g>
-  );
-}
+  // === FLOOR ===
+  // Main warm-grey carpet (agent-office: 0x2d2d3d)
+  g.fillStyle = '#2d2d3d';
+  g.fillRect(0, 0, CW, CH);
 
-function PixelPlant({ x, y }: { x: number; y: number }) {
-  return (
-    <g transform={`translate(${x},${y})`}>
-      <rect x="3" y="10" width="8" height="8" rx="1" fill="#1a1228" stroke="#33204a" strokeWidth="0.5"/>
-      <circle cx="7" cy="8" r="5" fill="#1a3a28"/>
-      <circle cx="4" cy="10" r="3" fill="#1a3a28"/>
-      <circle cx="10" cy="10" r="3" fill="#1a3a28"/>
-      <circle cx="7" cy="5" r="3" fill="#1f4a30"/>
-      <rect x="6" y="8" width="2" height="6" fill="#0f2218"/>
-    </g>
-  );
-}
+  // Work area (slightly lighter, 0x33334a)
+  g.fillStyle = '#33334a';
+  g.fillRect(TILE, TILE, CW - TILE * 2, CH - TILE * 2);
 
-function PixelWindow({ x, y }: { x: number; y: number }) {
-  return (
-    <g transform={`translate(${x},${y})`}>
-      <rect x="0" y="0" width="24" height="20" rx="2" fill="#0d1a2e" stroke="#1e2a40" strokeWidth="1.5"/>
-      <rect x="2" y="2" width="20" height="16" rx="1" fill="#0a1528"/>
-      {/* cross frame */}
-      <rect x="11" y="2" width="2" height="16" fill="#1e2a40"/>
-      <rect x="2" y="10" width="20" height="2" fill="#1e2a40"/>
-      {/* sky glow */}
-      <rect x="3" y="3" width="7" height="6" rx="0.5" fill="#0d3060" opacity="0.6"/>
-      <rect x="14" y="3" width="7" height="6" rx="0.5" fill="#0d3060" opacity="0.6"/>
-      {/* stars */}
-      <circle cx="5" cy="5" r="0.5" fill="#fff" opacity="0.8"/>
-      <circle cx="9" cy="4" r="0.5" fill="#fff" opacity="0.6"/>
-      <circle cx="16" cy="6" r="0.5" fill="#fff" opacity="0.7"/>
-      <circle cx="20" cy="4" r="0.5" fill="#fff" opacity="0.5"/>
-    </g>
-  );
-}
+  // Meeting room carpet top-left (purple-tinted, 0x352a45)
+  g.fillStyle = '#352a45';
+  g.fillRect(TILE * 2, TILE * 2, TILE * 8, TILE * 8);
 
-function OfficePlant({ x, y }: { x: number; y: number }) {
-  return <PixelPlant x={x} y={y} />;
-}
+  // Collab area top-right (warm orange, 0x3d3025)
+  g.fillStyle = '#3d3025';
+  g.fillRect(TILE * 14, TILE * 2, TILE * 8, TILE * 8);
 
-// ── Floor tile pattern ─────────────────────────────────────────────────────
-function FloorGrid() {
-  const tiles = [];
-  for (let row = 0; row < 6; row++) {
-    for (let col = 0; col < 10; col++) {
-      const shade = (row + col) % 2 === 0 ? '#0e0b18' : '#0c0915';
-      tiles.push(
-        <rect key={`${row}-${col}`} x={col * 10} y={row * 10} width="10" height="10" fill={shade} stroke="#1a1228" strokeWidth="0.3"/>
-      );
+  // Coffee area tiles bottom-right (checkerboard)
+  for (let tx = 0; tx < 6; tx++) {
+    for (let ty = 0; ty < 6; ty++) {
+      g.fillStyle = (tx + ty) % 2 === 0 ? '#2a3a2a' : '#253025';
+      g.fillRect(TILE * 17 + tx * TILE, TILE * 14 + ty * TILE, TILE, TILE);
     }
   }
-  return <g>{tiles}</g>;
+
+  // === WALLS ===
+  // Top wall
+  g.fillStyle = '#1a1a2e';
+  g.fillRect(0, 0, CW, TILE);
+  // Left wall  
+  g.fillStyle = '#1e1e30';
+  g.fillRect(0, 0, TILE, CH);
+  // Right wall
+  g.fillRect(CW - TILE, 0, TILE, CH);
+  // Bottom wall
+  g.fillStyle = '#1a1a2e';
+  g.fillRect(0, CH - TILE, CW, TILE);
+
+  // Wall highlight line
+  g.strokeStyle = '#2a2a45';
+  g.lineWidth = 2;
+  g.beginPath(); g.moveTo(TILE, TILE); g.lineTo(CW - TILE, TILE); g.stroke();
+  g.beginPath(); g.moveTo(TILE, TILE); g.lineTo(TILE, CH - TILE); g.stroke();
+
+  // === WINDOWS on top wall ===
+  drawWindow(g, TILE * 3, 2);
+  drawWindow(g, TILE * 10, 2);
+  drawWindow(g, TILE * 17, 2);
+
+  // === LARGE MEETING TABLE (top-left purple area) ===
+  g.fillStyle = '#6d4c2e';
+  g.fillRect(TILE * 3, TILE * 3, TILE * 5, TILE * 4);
+  g.fillStyle = '#7d5c3e';
+  g.fillRect(TILE * 3 + 2, TILE * 3 + 2, TILE * 5 - 4, TILE * 4 - 4);
+  // chairs around meeting table
+  const mChairs = [
+    [TILE*3+8, TILE*3-6],[TILE*3+24, TILE*3-6],[TILE*3+40, TILE*3-6],
+    [TILE*3+8, TILE*7+6],[TILE*3+24, TILE*7+6],[TILE*3+40, TILE*7+6],
+    [TILE*3-6, TILE*4],[TILE*3-6, TILE*6],
+    [TILE*8+6, TILE*4],[TILE*8+6, TILE*6],
+  ];
+  mChairs.forEach(([cx,cy]) => drawChair(g, cx, cy));
+  // Label
+  g.font = '8px monospace'; g.fillStyle = '#b8a9d4'; g.textAlign = 'center';
+  g.fillText('📋 Meeting Room', TILE * 5 + 8, TILE * 5 + 3);
+
+  // === COLLAB STANDING DESKS (top-right) ===
+  g.fillStyle = '#5a3e28';
+  g.fillRect(TILE*15, TILE*4, TILE*3, TILE*2);
+  g.fillStyle = '#6a4e38';
+  g.fillRect(TILE*15+1, TILE*4+1, TILE*3-2, TILE*2-2);
+  drawLaptop(g, TILE*15+4, TILE*4+2);
+
+  g.fillStyle = '#5a3e28';
+  g.fillRect(TILE*19, TILE*4, TILE*3, TILE*2);
+  g.fillStyle = '#6a4e38';
+  g.fillRect(TILE*19+1, TILE*4+1, TILE*3-2, TILE*2-2);
+  drawLaptop(g, TILE*19+4, TILE*4+2);
+
+  // Bean bags
+  g.fillStyle = 'rgba(224,23,85,0.55)';
+  g.beginPath(); g.arc(TILE*15+8, TILE*7+8, 9, 0, Math.PI*2); g.fill();
+  g.fillStyle = 'rgba(253,203,110,0.55)';
+  g.beginPath(); g.arc(TILE*18+8, TILE*8, 9, 0, Math.PI*2); g.fill();
+  g.fillStyle = 'rgba(108,197,199,0.55)';
+  g.beginPath(); g.arc(TILE*21, TILE*7+8, 9, 0, Math.PI*2); g.fill();
+
+  g.font = '8px monospace'; g.fillStyle = '#e8a87c'; g.textAlign = 'center';
+  g.fillText('💡 Collab Area', TILE*18+4, TILE*3+4);
+
+  // === COFFEE AREA ===
+  // Counter
+  g.fillStyle = '#5a3e28';
+  g.fillRect(TILE*17, TILE*20-4, TILE*6, TILE*1+4);
+  g.fillStyle = '#6d4c2e';
+  g.fillRect(TILE*17+1, TILE*20-3, TILE*6-2, TILE*1+2);
+  // Coffee machine
+  g.fillStyle = '#2d3436'; g.fillRect(TILE*18, TILE*19-2, TILE*2, TILE+4);
+  g.fillStyle = '#636e72'; g.fillRect(TILE*18+1, TILE*19-1, TILE*2-2, TILE+2);
+  g.fillStyle = '#d63031';
+  g.beginPath(); g.arc(TILE*19, TILE*19+4, 2, 0, Math.PI*2); g.fill();
+  // Mugs
+  g.fillStyle = '#d63031'; drawMug(g, TILE*17+4, TILE*19+4);
+  g.fillStyle = '#00b894'; drawMug(g, TILE*18+4, TILE*19+4);
+  g.fillStyle = '#fdcb6e'; drawMug(g, TILE*20+4, TILE*19+4);
+  g.font = '8px monospace'; g.fillStyle = '#7fcdaa'; g.textAlign = 'center';
+  g.fillText('☕ Coffee & Pantry', TILE*20, TILE*21-2);
+
+  // === PLANTS ===
+  drawPlant(g, TILE*2, TILE*11);
+  drawPlant(g, TILE*24-4, TILE*11);
+  drawPlant(g, TILE*12, TILE*20);
+
+  // === BOOKSHELF right wall ===
+  g.fillStyle = '#5a3e28';
+  g.fillRect(CW-TILE-1, TILE*3, TILE-2, TILE*7);
+  g.fillStyle = '#6d4c2e';
+  for (let s = 0; s < 3; s++) {
+    g.fillRect(CW-TILE, TILE*3+s*TILE*2+4, TILE-2, 2);
+  }
+  const bookColors = ['#d63031','#0984e3','#fdcb6e','#00b894','#6c5ce7','#e17055'];
+  bookColors.forEach((c, i) => {
+    g.fillStyle = c;
+    g.fillRect(CW-TILE, TILE*3+Math.floor(i/3)*TILE*2+6, 3, TILE-2);
+  });
+
+  // === CENTER RUG ===
+  g.fillStyle = 'rgba(108,92,231,0.18)';
+  g.beginPath();
+  g.ellipse(TILE*13, TILE*12, TILE*5, TILE*3, 0, 0, Math.PI*2);
+  g.fill();
+  g.strokeStyle = 'rgba(108,92,231,0.35)';
+  g.lineWidth = 1.5;
+  g.beginPath();
+  g.ellipse(TILE*13, TILE*12, TILE*5, TILE*3, 0, 0, Math.PI*2);
+  g.stroke();
+  // ORBIT text on rug
+  g.font = 'bold 9px "Rajdhani",monospace'; g.fillStyle = '#e8303a';
+  g.textAlign = 'center'; g.fillText('ORBIT', TILE*13, TILE*12+3);
+
+  // === PARTITION WALLS (work areas) ===
+  g.strokeStyle = '#2a2a42'; g.lineWidth = 2;
+  // Horizontal partition
+  g.beginPath(); g.moveTo(TILE*11, TILE*2); g.lineTo(TILE*11, TILE*10); g.stroke();
+  // Vertical center
+  g.beginPath(); g.moveTo(TILE*2, TILE*11); g.lineTo(TILE*24, TILE*11); g.stroke();
+
+  g.textAlign = 'left'; // reset
 }
 
-// ── Main component ─────────────────────────────────────────────────────────
-export default function CrewPage() {
-  const [order, setOrder] = useState('');
-  const [running, setRunning] = useState(false);
-  const [lines, setLines] = useState<Line[]>([
-    { cls: 'mut', text: '// Orbit Office — crew on standby.' },
-    { cls: 'mut', text: '// Give an order. Agents run it for real on your workspace.' },
-  ]);
-  const [agentStates, setAgentStates] = useState<Record<string, AgentState>>({
-    director: 'idle', researcher: 'idle', webdev: 'idle', appdev: 'idle',
+function drawWindow(g: CanvasRenderingContext2D, x: number, y: number) {
+  g.fillStyle = '#0d1a2e';
+  g.fillRect(x, y, TILE*3, TILE-2);
+  g.fillStyle = '#0a1528';
+  g.fillRect(x+1, y+1, TILE*3-2, TILE-4);
+  // frame divider
+  g.strokeStyle = '#1e2a40'; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(x+TILE+5, y+1); g.lineTo(x+TILE+5, y+TILE-3); g.stroke();
+  // glow
+  g.fillStyle = 'rgba(30,60,160,0.3)';
+  g.fillRect(x+1, y+1, TILE+4, TILE-4);
+  g.fillStyle = 'rgba(30,60,160,0.3)';
+  g.fillRect(x+TILE+6, y+1, TILE*3-TILE-7, TILE-4);
+  // stars
+  g.fillStyle = 'rgba(255,255,255,0.7)';
+  [[x+4,y+3],[x+8,y+2],[x+TILE+8,y+3],[x+TILE*2,y+2]].forEach(([sx,sy]) => {
+    g.fillRect(sx, sy, 1, 1);
   });
-  const [activeLogs, setActiveLogs] = useState<Record<string, string>>({});
-  const [emotes, setEmotes] = useState<Record<string, string>>({});
-  const termRef = useRef<HTMLDivElement>(null);
+}
 
+function drawChair(g: CanvasRenderingContext2D, cx: number, cy: number) {
+  g.fillStyle = '#4a4a6a';
+  g.beginPath(); g.arc(cx, cy, 5, 0, Math.PI*2); g.fill();
+  g.fillStyle = '#5a5a7a';
+  g.beginPath(); g.arc(cx, cy, 3.5, 0, Math.PI*2); g.fill();
+}
+
+function drawLaptop(g: CanvasRenderingContext2D, x: number, y: number) {
+  g.fillStyle = '#636e72';
+  g.fillRect(x, y, TILE-2, TILE-6);
+  g.fillStyle = '#2d3436';
+  g.fillRect(x+1, y+1, TILE-4, TILE-8);
+  g.fillStyle = '#00b894'; // screen glow
+  g.fillRect(x+2, y+2, 4, 2);
+  g.fillStyle = '#636e72';
+  g.fillRect(x-1, y+TILE-6, TILE, 2);
+}
+
+function drawPlant(g: CanvasRenderingContext2D, x: number, y: number) {
+  // pot
+  g.fillStyle = '#8b4513';
+  g.fillRect(x+3, y+8, 8, 8);
+  g.fillStyle = '#a0522d';
+  g.fillRect(x+4, y+9, 6, 6);
+  // foliage
+  g.fillStyle = '#27ae60';
+  g.beginPath(); g.arc(x+7, y+6, 6, 0, Math.PI*2); g.fill();
+  g.fillStyle = '#2ecc71';
+  g.beginPath(); g.arc(x+4, y+8, 4, 0, Math.PI*2); g.fill();
+  g.beginPath(); g.arc(x+10, y+8, 4, 0, Math.PI*2); g.fill();
+  g.fillStyle = '#1a9c48';
+  g.beginPath(); g.arc(x+7, y+3, 4, 0, Math.PI*2); g.fill();
+}
+
+function drawMug(g: CanvasRenderingContext2D, x: number, y: number) {
+  const c = g.fillStyle as string;
+  g.fillRect(x, y, 4, 5);
+  g.strokeStyle = c; g.lineWidth = 1;
+  g.beginPath(); g.arc(x+5, y+2, 2, -Math.PI/2, Math.PI/2); g.stroke();
+}
+
+// ─── Desk renderer ────────────────────────────────────────────────────────
+function drawDesk(g: CanvasRenderingContext2D, px: number, py: number, color: string, state: AState, t: number) {
+  const x = px; const y = py;
+  // Desk body
+  g.fillStyle = '#6d4c2e';
+  g.fillRect(x, y, TILE*3, TILE*2);
+  g.fillStyle = '#7d5c3e';
+  g.fillRect(x+1, y+1, TILE*3-2, TILE*2-2);
+
+  // Monitor
+  g.fillStyle = '#1a1a2a';
+  g.fillRect(x+6, y-14, TILE*2-4, TILE);
+  g.fillStyle = '#2d3436';
+  g.fillRect(x+7, y-13, TILE*2-6, TILE-2);
+
+  // Screen content — animated when working
+  if (state === 'working') {
+    const blink = Math.floor(t / 300) % 2 === 0;
+    g.fillStyle = color + 'cc';
+    g.fillRect(x+8, y-12, 6, 2);
+    g.fillStyle = '#00b894' + '99';
+    g.fillRect(x+8, y-9, 10, 2);
+    g.fillStyle = '#fdcb6e' + '80';
+    g.fillRect(x+8, y-6, 8, 2);
+    if (blink) {
+      g.fillStyle = '#ffffff';
+      g.fillRect(x+18, y-12, 1, 8);
+    }
+  } else if (state === 'thinking') {
+    // Screen shows dots
+    for (let d = 0; d < 3; d++) {
+      const phase = (t / 400 + d * 0.4) % 1;
+      g.fillStyle = color + Math.floor(phase * 200 + 55).toString(16).padStart(2,'0');
+      g.beginPath();
+      g.arc(x+10+d*5, y-8, 2, 0, Math.PI*2);
+      g.fill();
+    }
+  } else {
+    // Idle screen with faint lines
+    g.fillStyle = color + '30';
+    g.fillRect(x+8, y-12, 6, 2);
+    g.fillStyle = '#ffffff15';
+    g.fillRect(x+8, y-9, 10, 2);
+    g.fillStyle = '#ffffff10';
+    g.fillRect(x+8, y-6, 8, 2);
+  }
+
+  // Monitor stand
+  g.fillStyle = '#4a4a5a';
+  g.fillRect(x+TILE-2, y-2, 4, 4);
+
+  // Keyboard
+  g.fillStyle = '#b2bec3';
+  g.fillRect(x+2, y+4, 14, 6);
+  g.fillStyle = '#dfe6e9';
+  g.fillRect(x+3, y+5, 12, 4);
+  // Keys
+  g.fillStyle = '#b2bec3';
+  for (let k = 0; k < 4; k++) g.fillRect(x+3+k*3, y+5, 2, 2);
+  for (let k = 0; k < 4; k++) g.fillRect(x+3+k*3, y+8, 2, 1);
+
+  // Mouse
+  g.fillStyle = '#b2bec3';
+  g.fillRect(x+18, y+5, 5, 4);
+  g.beginPath(); g.arc(x+20, y+5, 2, Math.PI, 0); g.fill();
+
+  // Notepad
+  g.fillStyle = '#ffeaa7';
+  g.fillRect(x+TILE*2+2, y+2, 8, 10);
+  g.strokeStyle = '#fdcb6e'; g.lineWidth = 0.5;
+  [3,5,7,9].forEach(l => {
+    g.beginPath(); g.moveTo(x+TILE*2+3, y+l); g.lineTo(x+TILE*2+9, y+l); g.stroke();
+  });
+
+  // Coffee mug
+  g.fillStyle = '#d63031';
+  g.fillRect(x+TILE*2+2, y-6, 5, 5);
+  g.strokeStyle = '#d63031'; g.lineWidth = 1;
+  g.beginPath(); g.arc(x+TILE*2+8, y-4, 2, -Math.PI/2, Math.PI/2); g.stroke();
+
+  // Color accent line on desk edge
+  g.fillStyle = color;
+  g.fillRect(x, y, TILE*3, 2);
+
+  // Legs
+  g.fillStyle = '#5a3e28';
+  g.fillRect(x+2, y+TILE*2, 3, 6);
+  g.fillRect(x+TILE*3-5, y+TILE*2, 3, 6);
+
+  // Name label above desk
+  g.font = '6px monospace'; g.fillStyle = color; g.textAlign = 'center';
+  g.fillText('', x + TILE+7, y+TILE*2+14); // state shown on agent
+}
+
+// ─── Character renderer ───────────────────────────────────────────────────
+function drawAgent(g: CanvasRenderingContext2D, agent: Agent, t: number) {
+  const { px, py, color, state, walkFrame, bobPhase, typeFrame } = agent;
+
+  const bob = state === 'idle' ? Math.sin(t / 600 + bobPhase) * 1.5 : 0;
+  const x = Math.round(px);
+  const y = Math.round(py + bob);
+
+  // Shadow
+  g.fillStyle = 'rgba(0,0,0,0.25)';
+  g.beginPath(); g.ellipse(x+4, y+20, 5, 2, 0, 0, Math.PI*2); g.fill();
+
+  // Legs — animated when walking
+  if (state === 'walking') {
+    const legSwing = Math.sin(t / 120) * 3;
+    g.fillStyle = '#2d3436';
+    g.fillRect(x+1, y+13, 3, 6 + legSwing);
+    g.fillRect(x+5, y+13, 3, 6 - legSwing);
+  } else if (state === 'working') {
+    // Sitting — legs bent
+    g.fillStyle = '#2d3436';
+    g.fillRect(x, y+14, 4, 5);
+    g.fillRect(x+5, y+14, 4, 5);
+    g.fillRect(x, y+19, 5, 2);   // feet left
+    g.fillRect(x+4, y+19, 5, 2); // feet right
+  } else {
+    g.fillStyle = '#2d3436';
+    g.fillRect(x+1, y+13, 3, 7);
+    g.fillRect(x+5, y+13, 3, 7);
+  }
+
+  // Body / shirt
+  g.fillStyle = color;
+  g.fillRect(x, y+6, 9, 9);
+
+  // Collar / neck
+  g.fillStyle = '#deb887';
+  g.fillRect(x+3, y+4, 3, 4);
+
+  // Arms — animated when typing
+  if (state === 'working') {
+    const typeSwing = typeFrame % 2 === 0 ? -2 : 2;
+    g.fillStyle = color;
+    g.fillRect(x-2, y+7, 3, 7);
+    g.fillRect(x+8, y+7, 3, 7);
+    // hands forward (typing)
+    g.fillStyle = '#deb887';
+    g.fillRect(x-3, y+8+typeSwing, 3, 3);
+    g.fillRect(x+9, y+8-typeSwing, 3, 3);
+  } else if (state === 'walking') {
+    const armSwing = Math.sin(t / 120 + Math.PI) * 4;
+    g.fillStyle = color;
+    g.fillRect(x-2, y+7, 3, 5+armSwing);
+    g.fillRect(x+8, y+7, 3, 5-armSwing);
+    g.fillStyle = '#deb887';
+    g.fillRect(x-2, y+12+armSwing, 3, 3);
+    g.fillRect(x+8, y+12-armSwing, 3, 3);
+  } else {
+    g.fillStyle = color;
+    g.fillRect(x-2, y+7, 3, 7);
+    g.fillRect(x+8, y+7, 3, 7);
+    g.fillStyle = '#deb887';
+    g.fillRect(x-2, y+14, 3, 3);
+    g.fillRect(x+8, y+14, 3, 3);
+  }
+
+  // Head
+  g.fillStyle = '#deb887';
+  g.fillRect(x+1, y-2, 7, 8);
+
+  // Hair (different per agent — based on color)
+  const hairColors: Record<string, string> = {
+    '#e8303a': '#2c1810', '#37e0c5': '#0d3028',
+    '#a78bfa': '#1e1040', '#f4b942': '#3a2800',
+  };
+  g.fillStyle = hairColors[color] || '#2c1810';
+  g.fillRect(x+1, y-2, 7, 4);
+  g.fillRect(x+1, y-2, 2, 7); // side hair
+
+  // Eyes — blink when thinking
+  const blink = state === 'thinking' && Math.floor(t / 150) % 8 === 0;
+  g.fillStyle = '#2d3436';
+  if (blink) {
+    g.fillRect(x+2, y+2, 2, 1);
+    g.fillRect(x+5, y+2, 2, 1);
+  } else {
+    g.fillRect(x+2, y+2, 2, 2);
+    g.fillRect(x+5, y+2, 2, 2);
+  }
+
+  // Mouth
+  g.fillStyle = state === 'done' ? '#00b894' : '#c0956b';
+  g.fillRect(x+3, y+5, 3, 1);
+
+  // Name tag
+  g.font = 'bold 6px monospace';
+  g.fillStyle = color;
+  g.textAlign = 'center';
+  g.fillText(agent.name, x+4, y+25);
+
+  // State indicator
+  g.font = '5px monospace';
+  g.fillStyle = state === 'idle' ? '#636e72' : '#ffffff';
+  g.fillText(state.toUpperCase(), x+4, y+31);
+}
+
+// ─── Emote bubble ─────────────────────────────────────────────────────────
+function drawEmote(g: CanvasRenderingContext2D, agent: Agent) {
+  if (agent.state === 'idle' || agent.emoteTimer <= 0) return;
+  const x = Math.round(agent.px) + 4;
+  const y = Math.round(agent.py) - 16;
+  const alpha = Math.min(1, agent.emoteTimer / 60);
+
+  g.save();
+  g.globalAlpha = alpha;
+  // bubble bg
+  g.fillStyle = '#1e1e30';
+  g.strokeStyle = agent.color;
+  g.lineWidth = 1;
+  g.beginPath();
+  g.roundRect(x-8, y-12, 18, 14, 4);
+  g.fill(); g.stroke();
+  // tail
+  g.fillStyle = '#1e1e30';
+  g.beginPath(); g.moveTo(x-2, y+2); g.lineTo(x, y+6); g.lineTo(x+4, y+2); g.fill();
+  g.strokeStyle = agent.color;
+  g.beginPath(); g.moveTo(x-2, y+2); g.lineTo(x, y+6); g.lineTo(x+4, y+2); g.stroke();
+  // emoji
+  g.font = '9px serif';
+  g.textAlign = 'center';
+  g.fillText(agent.emote, x+1, y-1);
+  g.restore();
+}
+
+// ─── Walk target logic ────────────────────────────────────────────────────
+const WANDER_SPOTS = [
+  [TILE*5, TILE*12],[TILE*12, TILE*5],[TILE*13, TILE*12],[TILE*18, TILE*12],
+  [TILE*8, TILE*8],[TILE*6, TILE*15],[TILE*14, TILE*17],[TILE*10, TILE*18],
+];
+
+function randomWanderTarget() {
+  return WANDER_SPOTS[Math.floor(Math.random() * WANDER_SPOTS.length)];
+}
+
+// ─── Main React component ─────────────────────────────────────────────────
+export default function CrewPage() {
+  const [order, setOrder]   = useState('');
+  const [running, setRunning] = useState(false);
+  const [lines, setLines]   = useState<Line[]>([
+    { cls: 'mut', text: '// Orbit Office — crew on standby.' },
+    { cls: 'mut', text: '// Give an order below. Agents run it for real on your CRM.' },
+  ]);
+
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const termRef   = useRef<HTMLDivElement>(null);
+  const agentsRef = useRef<Agent[]>(CREW_CONFIG.map(makeAgent));
+  const stateMapRef = useRef<Record<string, AState>>({
+    director:'idle', researcher:'idle', webdev:'idle', appdev:'idle',
+  });
+  const rafRef    = useRef<number>(0);
+  const lastTRef  = useRef<number>(0);
+
+  // Auto-scroll terminal
   useEffect(() => {
     if (termRef.current) termRef.current.scrollTop = termRef.current.scrollHeight;
   }, [lines]);
 
   const push = useCallback((l: Line) => setLines(p => [...p, l]), []);
 
-  const setAgent = useCallback((id: string, state: AgentState) => {
-    setAgentStates(s => ({ ...s, [id]: state }));
-    setEmotes(e => ({ ...e, [id]: EMOTES[state] }));
+  // ── Game loop ──────────────────────────────────────────────────────────
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // idle random wander timer
+    const wanderTimers: Record<string, number> = {};
+    CREW_CONFIG.forEach(c => { wanderTimers[c.id] = Math.random() * 300 + 120; });
+
+    function tick(now: number) {
+      const dt = Math.min(now - (lastTRef.current || now), 50);
+      lastTRef.current = now;
+      const t = now;
+
+      ctx.clearRect(0, 0, CW, CH);
+      drawOffice(ctx, t);
+
+      const agents = agentsRef.current;
+
+      agents.forEach(agent => {
+        const assignedState = stateMapRef.current[agent.id];
+
+        // ── State machine ──────────────────────────────────────────────
+        if (assignedState === 'working' || assignedState === 'thinking') {
+          // Assigned to work: move to desk if not there
+          const distX = agent.deskPx + 8 - agent.tx;
+          const distY = agent.deskPy - 4  - agent.ty;
+          if (Math.abs(distX) > 4 || Math.abs(distY) > 4) {
+            agent.tx = agent.deskPx + 8;
+            agent.ty = agent.deskPy - 4;
+            agent.state = 'walking';
+            agent.emote = EMOTES.walking;
+            agent.emoteTimer = 120;
+          } else {
+            agent.state = assignedState;
+            agent.emote = EMOTES[assignedState];
+            agent.emoteTimer = 999;
+          }
+        } else if (assignedState === 'done') {
+          agent.state = 'done';
+          agent.emote = EMOTES.done;
+          agent.emoteTimer = 180;
+        } else {
+          // Idle — wander randomly
+          wanderTimers[agent.id] -= dt;
+          if (wanderTimers[agent.id] <= 0) {
+            const [wx, wy] = randomWanderTarget();
+            agent.tx = wx;
+            agent.ty = wy;
+            agent.state = 'walking';
+            agent.emote = EMOTES.walking;
+            agent.emoteTimer = 100;
+            wanderTimers[agent.id] = Math.random() * 800 + 400;
+          }
+        }
+
+        // ── Move toward target ─────────────────────────────────────────
+        const dx = agent.tx - agent.px;
+        const dy = agent.ty - agent.py;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist > 1) {
+          const speed = agent.state === 'walking' ? 1.4 : 0;
+          agent.px += (dx / dist) * speed * (dt / 16);
+          agent.py += (dy / dist) * speed * (dt / 16);
+          if (dist < 2) { agent.px = agent.tx; agent.py = agent.ty; }
+        } else if (agent.state === 'walking') {
+          // Arrived — switch to assigned or idle
+          const aState = stateMapRef.current[agent.id];
+          agent.state = (aState === 'working' || aState === 'thinking') ? aState : 'idle';
+          agent.emote = EMOTES[agent.state];
+          agent.emoteTimer = agent.state !== 'idle' ? 999 : 0;
+        }
+
+        // ── Animate frames ─────────────────────────────────────────────
+        agent.emoteTimer = Math.max(0, agent.emoteTimer - dt);
+
+        agent.typeTimer += dt;
+        if (agent.typeTimer > 120) { agent.typeFrame++; agent.typeTimer = 0; }
+
+        agent.walkTimer += dt;
+        if (agent.walkTimer > 150) { agent.walkFrame = (agent.walkFrame+1)%4; agent.walkTimer = 0; }
+
+        // ── Draw desk for this agent ────────────────────────────────────
+        drawDesk(ctx, agent.deskPx, agent.deskPy, agent.color, agent.state, t);
+
+        // ── Draw agent ─────────────────────────────────────────────────
+        drawAgent(ctx, agent, t);
+        drawEmote(ctx, agent);
+      });
+
+      rafRef.current = requestAnimationFrame(tick);
+    }
+
+    rafRef.current = requestAnimationFrame(tick);
+    return () => { cancelAnimationFrame(rafRef.current); };
   }, []);
 
+  // ── Update agent states when SSE events arrive ─────────────────────────
+  function setAgentState(id: string, state: AState) {
+    stateMapRef.current[id] = state;
+  }
+
+  // ── SSE handler ────────────────────────────────────────────────────────
   async function run(cmd: string) {
     if (running || !cmd.trim()) return;
     setRunning(true);
-    setAgent('director', 'thinking');
-    setLines([{ cls: 'prompt', text: `> ${cmd}` }]);
+    setAgentState('director', 'thinking');
+    setLines([{ cls: 'prompt', text: `orbit > ${cmd}` }]);
 
     try {
       const res = await fetch('/api/crew', {
@@ -225,183 +681,116 @@ export default function CrewPage() {
           const m = part.match(/^data: (.*)$/s);
           if (!m) continue;
           let ev: any; try { ev = JSON.parse(m[1]); } catch { continue; }
-          handle(ev);
+          handleEvent(ev);
         }
       }
     } catch (e: any) {
       push({ cls: 'warn', text: `Connection lost: ${String(e?.message || e)}` });
     } finally {
       setRunning(false);
-      setAgent('director', 'idle');
-      Object.keys(CREW).forEach(k => setAgent(k, 'idle'));
+      CREW_CONFIG.forEach(c => setAgentState(c.id, 'idle'));
     }
   }
 
-  function handle(ev: any) {
+  function handleEvent(ev: any) {
     switch (ev.event) {
       case 'system': push({ cls: 'mut', text: `// ${ev.msg}` }); break;
       case 'agent_start': {
-        const id = ev.agent as CrewKey;
-        setAgent(id, 'walking');
-        setTimeout(() => setAgent(id, 'thinking'), 600);
-        setTimeout(() => setAgent(id, 'working'), 1400);
-        push({ cls: 'hdr', text: `── ${CREW[id]?.name || id} ──────────────────` });
+        const id = ev.agent as string;
+        setAgentState('director', 'working');
+        setTimeout(() => setAgentState(id, 'thinking'), 200);
+        setTimeout(() => setAgentState(id, 'working'), 1800);
+        push({ cls: 'hdr', text: `─── ${CREW_CONFIG.find(c=>c.id===id)?.name || id} ───────────────────` });
         if (ev.task) push({ cls: 'mut', text: `// ${ev.task}` });
-        setActiveLogs(l => ({ ...l, [id]: ev.task || '' }));
         break;
       }
       case 'director_plan':
         push({ cls: 'info', text: `plan: ${ev.summary}` });
-        push({ cls: 'mut', text: `crew: ${(ev.crew || []).map((c: string) => CREW[c as CrewKey]?.name || c).join(', ')}` });
-        setAgent('director', 'working');
+        push({ cls: 'mut', text: `crew: ${(ev.crew||[]).join(', ')}` });
         break;
-      case 'line': push({ cls: ev.cls || 'mut', text: ev.text, agent: ev.agent }); break;
-      case 'agent_done': setAgent(ev.agent, 'done'); setTimeout(() => setAgent(ev.agent, 'idle'), 2000); break;
-      case 'done': push({ cls: 'ok', text: '✔ Mission complete — crew reported in.' }); push({ cls: 'prompt', text: '> _' }); break;
-      case 'error': push({ cls: 'warn', text: `✖ ${ev.msg}` }); break;
+      case 'line': push({ cls: ev.cls||'mut', text: ev.text }); break;
+      case 'agent_done': setAgentState(ev.agent, 'done'); setTimeout(()=>setAgentState(ev.agent,'idle'),3000); break;
+      case 'done': push({ cls:'ok', text:'✔ Mission complete — crew reported in.' }); push({cls:'prompt',text:'orbit > _'}); break;
+      case 'error': push({ cls:'warn', text:`✖ ${ev.msg}` }); break;
     }
   }
 
-  const crews = Object.entries(CREW) as [CrewKey, typeof CREW[CrewKey]][];
-
   return (
-    <div className="orbit-office">
-      <style>{OFFICE_CSS}</style>
+    <div className="orb-wrap">
+      <style>{CSS}</style>
 
-      {/* ── Header ─────────────────────────────── */}
-      <div className="oo-head">
-        <div className="oo-logo"><span className="oo-dot" /><span>ORBIT <b>OFFICE</b></span></div>
-        <div className="oo-sub">pixel-art workstation · crew runs live on your CRM</div>
-        <div className="oo-pill">
-          <span className={`oo-led ${running ? 'on' : ''}`} />
+      {/* Header */}
+      <div className="orb-head">
+        <div className="orb-logo"><span className="orb-dot" />ORBIT <b>OFFICE</b></div>
+        <div className="orb-tagline">pixel-art workstation · agents run live on your CRM</div>
+        <div className="orb-status">
+          <span className={`orb-led ${running ? 'on' : ''}`} />
           {running ? 'Working…' : 'Standby'}
         </div>
       </div>
 
-      {/* ── Main split ─────────────────────────── */}
-      <div className="oo-split">
+      {/* Main layout */}
+      <div className="orb-body">
 
-        {/* ── Office scene ───────────────────── */}
-        <div className="oo-scene-wrap">
-          <div className="oo-scene-hdr">
-            <span className="oo-dots"><i/><i/><i/></span>
-            <span className="oo-scene-lbl">orbit-office · floor 1</span>
+        {/* Office canvas */}
+        <div className="orb-office-panel">
+          <div className="orb-panel-bar">
+            <span className="orb-dots"><i/><i/><i/></span>
+            <span>orbit-office · floor 1 · agents roaming</span>
           </div>
-          <div className="oo-scene">
-            <svg viewBox="0 0 100 100" className="oo-svg" preserveAspectRatio="xMidYMid meet">
-              {/* floor */}
-              <FloorGrid />
-              {/* walls top */}
-              <rect x="0" y="0" width="100" height="4" fill="#100c1a" stroke="#1e1630" strokeWidth="0.5"/>
-              <rect x="0" y="4" width="100" height="1" fill="#2a1f3a"/>
-              {/* wall art / windows */}
-              <PixelWindow x={10} y={0} />
-              <PixelWindow x={66} y={0} />
-              {/* plants */}
-              <PixelPlant x={0} y={40} />
-              <PixelPlant x={85} y={40} />
-              <PixelPlant x={44} y={82} />
-
-              {/* desks & chairs & agents */}
-              {crews.map(([id, c]) => {
-                const st = agentStates[id] || 'idle';
-                const isRight = c.desk.x > 50;
-                const isBottom = c.desk.y > 40;
-                return (
-                  <g key={id}>
-                    <PixelChair x={c.desk.x + (isRight ? 12 : 10)} y={c.desk.y + (isBottom ? -4 : 26)} color={c.color} />
-                    <PixelDesk x={c.desk.x} y={c.desk.y} color={c.color} />
-                    <PixelAgent
-                      x={c.desk.x + (isRight ? 14 : 9)}
-                      y={c.desk.y + (isBottom ? -28 : -2)}
-                      color={c.color}
-                      state={st}
-                      avatar={c.avatar}
-                    />
-                    {/* emote bubble */}
-                    {st !== 'idle' && (
-                      <g className="emote-bubble" transform={`translate(${c.desk.x + (isRight ? 20 : 16)},${c.desk.y + (isBottom ? -38 : -14)})`}>
-                        <rect x="-6" y="-6" width="14" height="12" rx="3" fill="#1a1228" stroke={c.color} strokeWidth="0.7" opacity="0.95"/>
-                        <text x="1" y="4" fontSize="7" textAnchor="middle" dominantBaseline="auto">{emotes[id] || EMOTES[st]}</text>
-                      </g>
-                    )}
-                    {/* name label */}
-                    <text
-                      x={c.desk.x + 17}
-                      y={c.desk.y + (isBottom ? 50 : 48)}
-                      fontSize="4"
-                      fill={c.color}
-                      textAnchor="middle"
-                      fontFamily="'JetBrains Mono',monospace"
-                      opacity="0.9"
-                    >{c.name}</text>
-                    <text
-                      x={c.desk.x + 17}
-                      y={c.desk.y + (isBottom ? 55 : 53)}
-                      fontSize="3"
-                      fill="#665f73"
-                      textAnchor="middle"
-                      fontFamily="'JetBrains Mono',monospace"
-                    >{st.toUpperCase()}</text>
-                  </g>
-                );
-              })}
-
-              {/* center logo / rug */}
-              <ellipse cx="50" cy="55" rx="12" ry="7" fill="#1a0e20" stroke="#2a1f3a" strokeWidth="0.5" opacity="0.7"/>
-              <text x="50" y="57" fontSize="4" fill="#e8303a" textAnchor="middle" fontFamily="'Rajdhani',sans-serif" fontWeight="700" letterSpacing="0.5">ORBIT</text>
-            </svg>
-
-            {/* agent status badges */}
-            <div className="oo-badges">
-              {crews.map(([id, c]) => (
-                <div key={id} className={`oo-badge ${agentStates[id] !== 'idle' ? 'active' : ''}`} style={{'--ac': c.color} as any}>
-                  <span className="oo-badge-dot" />
-                  <div>
-                    <div className="oo-badge-name">{c.name}</div>
-                    <div className="oo-badge-role">{c.role}</div>
-                  </div>
-                  <span className="oo-badge-state">{agentStates[id]}</span>
+          <div className="orb-canvas-wrap">
+            <canvas
+              ref={canvasRef}
+              width={CW}
+              height={CH}
+              className="orb-canvas"
+            />
+          </div>
+          {/* Agent roster */}
+          <div className="orb-roster">
+            {CREW_CONFIG.map(c => (
+              <div key={c.id} className="orb-member" style={{'--mc': c.color} as any}>
+                <span className="orb-member-dot" />
+                <div>
+                  <div className="orb-member-name">{c.name}</div>
+                  <div className="orb-member-role">{c.role}</div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* ── Terminal ───────────────────────── */}
-        <div className="oo-term-wrap">
-          <div className="oo-scene-hdr">
-            <span className="oo-dots"><i/><i/><i/></span>
-            <span className="oo-scene-lbl">orbit@crew:~/workspace</span>
+        {/* Terminal */}
+        <div className="orb-term-panel">
+          <div className="orb-panel-bar">
+            <span className="orb-dots"><i/><i/><i/></span>
+            <span>orbit@crew:~/workspace — live log</span>
           </div>
-          <div className="oo-term" ref={termRef}>
-            {lines.map((l, i) => (
-              <div key={i} className={`oo-ln ${l.cls}`}>{l.text}</div>
-            ))}
+          <div className="orb-term" ref={termRef}>
+            {lines.map((l,i) => <div key={i} className={`orb-ln ${l.cls}`}>{l.text}</div>)}
           </div>
         </div>
       </div>
 
-      {/* ── Input console ──────────────────────── */}
-      <div className="oo-console">
-        <div className="oo-console-lbl">// send an order to the crew</div>
-        <div className="oo-row">
+      {/* Command input */}
+      <div className="orb-cmd">
+        <div className="orb-cmd-label">// send order to crew</div>
+        <div className="orb-cmd-row">
           <input
             value={order}
             onChange={e => setOrder(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') run(order); }}
-            placeholder="e.g. Create a contact named Alex at TechCorp…"
+            onKeyDown={e => { if (e.key==='Enter') run(order); }}
+            placeholder="e.g. Create a contact named Alex at TechCorp and add a follow-up task"
             disabled={running}
           />
-          <button className="oo-run" onClick={() => run(order)} disabled={running}>
+          <button className="orb-run" onClick={()=>run(order)} disabled={running}>
             {running ? '…' : 'RUN'}
           </button>
         </div>
-        <div className="oo-chips">
+        <div className="orb-chips">
           {QUICK.map(q => (
-            <button key={q} className="oo-chip" disabled={running} onClick={() => { setOrder(q); run(q); }}>
-              {q}
-            </button>
+            <button key={q} className="orb-chip" disabled={running}
+              onClick={()=>{ setOrder(q); run(q); }}>{q}</button>
           ))}
         </div>
       </div>
@@ -409,118 +798,62 @@ export default function CrewPage() {
   );
 }
 
-// ── CSS ────────────────────────────────────────────────────────────────────
-const OFFICE_CSS = `
-:root {
-  --red:#e8303a; --rs:#ff5d66; --teal:#37e0c5; --amber:#f4b942;
-  --violet:#a78bfa; --green:#36d399; --ink:#eceaf4; --dim:#9a93a8;
-  --faint:#665f73; --line:#1e1630; --panel:#0c0915;
-}
-.orbit-office { color:var(--ink); font-family:'DM Sans',system-ui,sans-serif; }
-
-/* head */
-.oo-head { display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
-.oo-logo { display:flex; align-items:center; gap:8px; font-family:'Rajdhani',sans-serif; font-weight:700; font-size:18px; letter-spacing:.12em; }
-.oo-logo b { color:var(--red); }
-.oo-dot { width:10px; height:10px; border-radius:50%; background:var(--red); box-shadow:0 0 10px var(--red); display:inline-block; }
-.oo-sub { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--faint); letter-spacing:.1em; text-transform:uppercase; }
-.oo-pill { margin-left:auto; display:flex; align-items:center; gap:7px; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--dim); border:1px solid var(--line); padding:5px 10px; border-radius:999px; }
-.oo-led { width:7px; height:7px; border-radius:50%; background:#4a3060; }
-.oo-led.on { background:var(--green); box-shadow:0 0 8px var(--green); animation:oo-pulse 1.4s infinite; }
-@keyframes oo-pulse { 50%{opacity:.5} }
-
-/* split layout */
-.oo-split { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-@media(max-width:780px) { .oo-split { grid-template-columns:1fr; } }
-
-/* panel shell */
-.oo-scene-wrap, .oo-term-wrap {
-  background:var(--panel); border:1px solid var(--line); border-radius:14px; overflow:hidden;
-}
-.oo-scene-hdr {
-  display:flex; align-items:center; gap:8px; padding:8px 12px;
-  border-bottom:1px solid var(--line); background:#0a0812;
-}
-.oo-dots { display:flex; gap:5px; }
-.oo-dots i { width:9px; height:9px; border-radius:50%; display:inline-block; }
-.oo-dots i:nth-child(1){background:#ff5f57} .oo-dots i:nth-child(2){background:#febc2e} .oo-dots i:nth-child(3){background:#28c840}
-.oo-scene-lbl { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--faint); text-transform:uppercase; letter-spacing:.1em; }
-
-/* office scene */
-.oo-scene { padding:10px; }
-.oo-svg { width:100%; image-rendering:pixelated; display:block; }
-
-/* agent animations */
-.pixel-agent { transition:transform .4s ease; }
-@keyframes oo-type-l { 0%,100%{transform:translateY(0)} 50%{transform:translateY(2px)} }
-@keyframes oo-type-r { 0%,100%{transform:translateY(2px)} 50%{transform:translateY(0)} }
-@keyframes oo-walk-l { 0%,100%{transform:rotate(-10deg)} 50%{transform:rotate(10deg)} }
-@keyframes oo-walk-r { 0%,100%{transform:rotate(10deg)} 50%{transform:rotate(-10deg)} }
-@keyframes oo-blink  { 0%,90%,100%{scaleY:1} 95%{transform:scaleY(0.1)} }
-@keyframes oo-think1 { 0%,100%{opacity:0;transform:scale(0)} 40%,60%{opacity:1;transform:scale(1)} }
-@keyframes oo-think2 { 0%,20%,100%{opacity:0;transform:scale(0)} 60%,80%{opacity:1;transform:scale(1)} }
-@keyframes oo-think3 { 0%,40%,100%{opacity:0;transform:scale(0)} 80%,95%{opacity:1;transform:scale(1)} }
-.pixel-working .type-l { animation:oo-type-l .3s infinite; transform-origin:center bottom; }
-.pixel-working .type-r { animation:oo-type-r .3s infinite; transform-origin:center bottom; }
-.pixel-walking .walk-l { animation:oo-walk-l .4s infinite; transform-origin:top center; }
-.pixel-walking .walk-r { animation:oo-walk-r .4s infinite; transform-origin:top center; }
-.pixel-thinking .eye-blink { animation:oo-blink 2s infinite; }
-.think-dot1 { animation:oo-think1 1.2s infinite; }
-.think-dot2 { animation:oo-think2 1.2s infinite; }
-.think-dot3 { animation:oo-think3 1.2s infinite; }
-.emote-bubble { animation:oo-pop .2s ease; }
-@keyframes oo-pop { from{transform:scale(0)} to{transform:scale(1)} }
-
-/* agent badges */
-.oo-badges { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:10px; }
-.oo-badge {
-  display:flex; align-items:center; gap:7px;
-  background:#0e0b18; border:1px solid var(--line); border-radius:9px; padding:6px 8px;
-  transition:border-color .3s;
-}
-.oo-badge.active { border-color:var(--ac); }
-.oo-badge-dot { width:6px; height:6px; border-radius:50%; background:var(--ac,#4a3060); flex-shrink:0; }
-.oo-badge.active .oo-badge-dot { box-shadow:0 0 6px var(--ac); animation:oo-pulse 1.4s infinite; }
-.oo-badge-name { font-family:'Rajdhani',sans-serif; font-weight:600; font-size:12px; line-height:1; }
-.oo-badge-role { font-family:'JetBrains Mono',monospace; font-size:8px; color:var(--faint); text-transform:uppercase; margin-top:1px; }
-.oo-badge-state { margin-left:auto; font-family:'JetBrains Mono',monospace; font-size:8px; color:var(--faint); text-transform:uppercase; }
-.oo-badge.active .oo-badge-state { color:var(--ac); }
-
-/* terminal */
-.oo-term {
-  height:clamp(260px,44vh,420px); overflow-y:auto; padding:10px 12px;
-  font-family:'JetBrains Mono',monospace; font-size:12px; line-height:1.65;
-  background:#060410;
-}
-.oo-term::-webkit-scrollbar{width:6px}
-.oo-term::-webkit-scrollbar-thumb{background:#1e1630;border-radius:3px}
-.oo-ln { white-space:pre-wrap; word-break:break-word; animation:oo-fade .18s ease; }
-@keyframes oo-fade { from{opacity:0} }
-.oo-ln.prompt{color:var(--rs)} .oo-ln.ok{color:var(--green)} .oo-ln.warn{color:var(--amber)}
-.oo-ln.info{color:var(--teal)} .oo-ln.mut{color:var(--dim)} .oo-ln.hdr{color:var(--faint)}
-.oo-ln.cmd{color:var(--ink);font-weight:500}
-
-/* console */
-.oo-console { margin-top:14px; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px; }
-.oo-console-lbl { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--faint); text-transform:uppercase; letter-spacing:.1em; margin-bottom:8px; }
-.oo-row { display:flex; gap:8px; }
-.oo-row input {
-  flex:1; min-width:0; background:#0b0810; border:1px solid #2a1f3a; border-radius:10px;
-  color:var(--ink); font-family:'DM Sans',sans-serif; font-size:15px; padding:12px 14px;
-}
-.oo-row input:focus { outline:none; border-color:var(--red); box-shadow:0 0 0 3px #e8303a1a; }
-.oo-run {
-  border:none; border-radius:10px; padding:0 18px; cursor:pointer;
-  font-family:'Rajdhani',sans-serif; font-weight:700; font-size:15px; letter-spacing:.07em;
-  color:#fff; background:linear-gradient(180deg,var(--red),#a4131c);
-  box-shadow:0 0 14px #e8303a55;
-}
-.oo-run:disabled { filter:grayscale(.7) brightness(.6); box-shadow:none; cursor:not-allowed; }
-.oo-chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:9px; }
-.oo-chip {
-  font-size:12px; color:var(--dim); background:#100c1a; border:1px solid #2a1f3a;
-  border-radius:999px; padding:6px 12px; cursor:pointer; text-align:left;
-}
-.oo-chip:hover { border-color:var(--red); color:var(--ink); }
-.oo-chip:disabled { opacity:.45; cursor:not-allowed; }
+// ─── CSS ──────────────────────────────────────────────────────────────────
+const CSS = `
+  .orb-wrap { font-family:'DM Sans',system-ui,sans-serif; color:#eceaf4; }
+  /* head */
+  .orb-head { display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
+  .orb-logo { font-family:'Rajdhani',sans-serif; font-weight:700; font-size:18px; letter-spacing:.12em; display:flex; align-items:center; gap:8px; }
+  .orb-logo b { color:#e8303a; }
+  .orb-dot { width:10px; height:10px; border-radius:50%; background:#e8303a; box-shadow:0 0 10px #e8303a; flex-shrink:0; display:inline-block; }
+  .orb-tagline { font-family:'JetBrains Mono',monospace; font-size:10px; color:#665f73; letter-spacing:.1em; text-transform:uppercase; }
+  .orb-status { margin-left:auto; display:flex; align-items:center; gap:7px; border:1px solid #1e1630; padding:5px 10px; border-radius:999px; font-family:'JetBrains Mono',monospace; font-size:10px; color:#9a93a8; }
+  .orb-led { width:7px; height:7px; border-radius:50%; background:#4a3060; }
+  .orb-led.on { background:#36d399; box-shadow:0 0 8px #36d399; animation:led-pulse 1.4s infinite; }
+  @keyframes led-pulse { 50%{opacity:.4} }
+  /* layout */
+  .orb-body { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  @media(max-width:800px){ .orb-body { grid-template-columns:1fr; } }
+  /* panels */
+  .orb-office-panel, .orb-term-panel { background:#0c0915; border:1px solid #1e1630; border-radius:14px; overflow:hidden; }
+  .orb-panel-bar { display:flex; align-items:center; gap:8px; padding:7px 12px; border-bottom:1px solid #1e1630; background:#0a0812; font-family:'JetBrains Mono',monospace; font-size:10px; color:#665f73; text-transform:uppercase; letter-spacing:.08em; }
+  .orb-dots { display:flex; gap:5px; }
+  .orb-dots i { width:9px; height:9px; border-radius:50%; display:inline-block; }
+  .orb-dots i:nth-child(1){ background:#ff5f57; }
+  .orb-dots i:nth-child(2){ background:#febc2e; }
+  .orb-dots i:nth-child(3){ background:#28c840; }
+  /* canvas */
+  .orb-canvas-wrap { padding:8px; background:#0c0915; }
+  .orb-canvas { width:100%; height:auto; display:block; image-rendering:pixelated; image-rendering:crisp-edges; border-radius:6px; border:1px solid #1e1630; }
+  /* roster */
+  .orb-roster { display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:8px; }
+  .orb-member { display:flex; align-items:center; gap:7px; background:#0e0b18; border:1px solid #2a1f3a; border-radius:8px; padding:6px 8px; }
+  .orb-member-dot { width:6px; height:6px; border-radius:50%; background:var(--mc,#4a3060); flex-shrink:0; box-shadow:0 0 4px var(--mc,#4a3060); }
+  .orb-member-name { font-family:'Rajdhani',sans-serif; font-weight:600; font-size:12px; line-height:1; color:#eceaf4; }
+  .orb-member-role { font-family:'JetBrains Mono',monospace; font-size:8px; color:#665f73; text-transform:uppercase; margin-top:2px; }
+  /* terminal */
+  .orb-term { height:clamp(260px,42vh,400px); overflow-y:auto; padding:10px 12px; font-family:'JetBrains Mono',monospace; font-size:12px; line-height:1.65; background:#060410; }
+  .orb-term::-webkit-scrollbar{ width:6px; }
+  .orb-term::-webkit-scrollbar-thumb{ background:#1e1630; border-radius:3px; }
+  .orb-ln { white-space:pre-wrap; word-break:break-word; animation:ln-fade .18s ease; }
+  @keyframes ln-fade { from{opacity:0} }
+  .orb-ln.prompt{ color:#ff5d66; }
+  .orb-ln.ok    { color:#36d399; }
+  .orb-ln.warn  { color:#f4b942; }
+  .orb-ln.info  { color:#37e0c5; }
+  .orb-ln.mut   { color:#9a93a8; }
+  .orb-ln.hdr   { color:#665f73; }
+  .orb-ln.cmd   { color:#eceaf4; font-weight:500; }
+  /* command */
+  .orb-cmd { margin-top:12px; background:#0c0915; border:1px solid #1e1630; border-radius:14px; padding:12px; }
+  .orb-cmd-label { font-family:'JetBrains Mono',monospace; font-size:10px; color:#665f73; text-transform:uppercase; letter-spacing:.1em; margin-bottom:8px; }
+  .orb-cmd-row { display:flex; gap:8px; }
+  .orb-cmd-row input { flex:1; min-width:0; background:#0b0810; border:1px solid #2a1f3a; border-radius:10px; color:#eceaf4; font-family:'DM Sans',sans-serif; font-size:15px; padding:12px 14px; }
+  .orb-cmd-row input:focus { outline:none; border-color:#e8303a; box-shadow:0 0 0 3px #e8303a1a; }
+  .orb-run { border:none; border-radius:10px; padding:0 20px; cursor:pointer; font-family:'Rajdhani',sans-serif; font-weight:700; font-size:15px; letter-spacing:.07em; color:#fff; background:linear-gradient(180deg,#e8303a,#a4131c); box-shadow:0 0 14px #e8303a55; }
+  .orb-run:disabled { filter:grayscale(.7) brightness(.6); box-shadow:none; cursor:not-allowed; }
+  .orb-chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:9px; }
+  .orb-chip { font-size:12px; color:#9a93a8; background:#100c1a; border:1px solid #2a1f3a; border-radius:999px; padding:6px 12px; cursor:pointer; text-align:left; }
+  .orb-chip:hover { border-color:#e8303a; color:#eceaf4; }
+  .orb-chip:disabled { opacity:.45; cursor:not-allowed; }
 `;

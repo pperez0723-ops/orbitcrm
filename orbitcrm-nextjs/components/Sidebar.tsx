@@ -16,6 +16,7 @@ const NAV = [
   { href: '/dashboard/forms', icon: 'ti-forms', label: 'Forms' },
   { href: '/dashboard/billing', icon: 'ti-credit-card', label: 'Billing' },
   { href: '/dashboard/settings', icon: 'ti-settings', label: 'Settings' },
+  { href: '/dashboard/crew', icon: 'ti-cpu', label: 'Crew' },
 ];
 
 export default function Sidebar() {

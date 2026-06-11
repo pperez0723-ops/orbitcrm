@@ -16,31 +16,33 @@ export default async function DealsPage() {
     );
   }
 
-  // Fetch pipeline stages for this workspace
-  const { data: stagesRaw } = await supabase
-    .from('stages')
-    .select('id, name, color, is_won, is_lost, sort_order')
-    .eq('workspace_id', workspaceId)
-    .order('sort_order', { ascending: true });
+  // Use the same proven queries from the original page.tsx
+  const { data: pipeline } = await supabase
+    .from('pipelines')
+    .select('id,name')
+    .eq('workspace_id', workspaceId!)
+    .eq('is_default', true)
+    .maybeSingle();
 
-  // Fetch all deals for this workspace with contact info
-  const { data: dealsRaw } = await supabase
-    .from('deals')
-    .select('id, title, value, stage_id, contact_id, contacts(name, company)')
-    .eq('workspace_id', workspaceId)
-    .order('created_at', { ascending: false })
-    .limit(500);
+  const [{ data: stages }, { data: deals }, { data: contacts }] = await Promise.all([
+    supabase.from('stages').select('*').eq('workspace_id', workspaceId!).order('sort_order'),
+    supabase.from('deals').select('*, contacts(fname,lname,company)').eq('workspace_id', workspaceId!),
+    supabase.from('contacts').select('id,fname,lname,company').eq('workspace_id', workspaceId!).order('created_at', { ascending: false }),
+  ]);
 
-  const stages = stagesRaw ?? [];
-  const deals = (dealsRaw ?? []).map((d: any) => ({
-    id: d.id,
-    name: d.title || 'Unnamed',
-    company: d.contacts?.company || d.contacts?.name || '',
-    value: d.value || 0,
-    stage_id: d.stage_id,
-    // Map stage_id to stage name for orbital display
-    status: stages.find((s: any) => s.id === d.stage_id)?.name || 'New Lead',
-  }));
-
-  return <OrbitalPipeline initialDeals={deals} stages={stages} workspaceId={workspaceId} />;
+  return (
+    <OrbitalPipeline
+      workspaceId={workspaceId!}
+      pipelineId={pipeline?.id || null}
+      stages={stages || []}
+      initialDeals={(deals || []).map((d: any) => ({
+        id: d.id,
+        name: d.title || 'Unnamed',
+        company: d.contacts?.company || [d.contacts?.fname, d.contacts?.lname].filter(Boolean).join(' ') || '',
+        value: d.value || 0,
+        stage_id: d.stage_id,
+        status: (stages || []).find((s: any) => s.id === d.stage_id)?.name || 'New Lead',
+      }))}
+    />
+  );
 }

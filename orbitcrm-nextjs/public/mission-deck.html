@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ORBIT · Mission Deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#08060d;--panel:#0e0a14;--line:#241620;--red:#e8303a;--rs:#ff5d66;--amber:#f4b942;--teal:#37e0c5;--green:#36d399;--violet:#a78bfa;--pink:#f472b6;--orange:#fb923c;--ink:#eceaf4;--dim:#9a93a8;--faint:#665f73;}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:'DM Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{min-height:100dvh;background:radial-gradient(900px 500px at 18% -10%,#1b0d14,transparent 60%),radial-gradient(700px 500px at 100% 110%,#110a16,transparent 55%),var(--bg)}
+.wrap{max-width:1200px;margin:0 auto;padding:16px 14px 34px}
+header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.logo{width:30px;height:30px}
+h1{font-family:'Press Start 2P',monospace;font-size:13px;margin:0;line-height:1.4}h1 b{color:var(--red)}
+.tag{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.13em;color:var(--faint);text-transform:uppercase;margin-top:5px}
+.pill{margin-left:auto;display:flex;align-items:center;gap:7px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase;border:1px solid var(--line);padding:6px 10px;border-radius:6px}
+.pill .d{width:8px;height:8px;border-radius:50%;background:#665f73}.pill .d.on{background:var(--green);box-shadow:0 0 8px var(--green);animation:bk 1.4s steps(2) infinite}
+@keyframes bk{50%{opacity:.3}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:14px}
+.ph{display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid var(--line)}
+.ph .lbl{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--faint);text-transform:uppercase}
+.dots{display:flex;gap:6px}.dots i{width:9px;height:9px;border-radius:50%}.dots i:nth-child(1){background:#ff5f57}.dots i:nth-child(2){background:#febc2e}.dots i:nth-child(3){background:#28c840}
+.office{background:#080510;padding:6px}.office svg{width:100%;height:auto;display:block}
+.term{height:clamp(170px,28vh,260px);overflow-y:auto;padding:12px 13px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;background:#060409}
+.term::-webkit-scrollbar{width:7px}.term::-webkit-scrollbar-thumb{background:#241620;border-radius:4px}
+.ln{display:flex;gap:8px;white-space:pre-wrap;word-break:break-word;animation:fd .2s ease}@keyframes fd{from{opacity:0}}
+.ln .g{color:var(--faint);flex:0 0 auto}
+.prompt{color:var(--rs)}.cmd{color:var(--ink);font-weight:500}.ok{color:var(--green)}.warn{color:var(--amber)}.info{color:var(--teal)}.mut{color:var(--dim)}.file{color:var(--violet)}.add{color:var(--green)}.del{color:#ff7a82}.bar{color:var(--red)}.hdr{color:var(--faint)}
+.cur{display:inline-block;width:7px;height:13px;background:var(--red);vertical-align:-2px;animation:cb 1s steps(1) infinite}@keyframes cb{50%{opacity:0}}
+.console{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+.console .l{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--faint);text-transform:uppercase;margin-bottom:10px}
+.rowi{display:flex;gap:8px}
+.rowi input{flex:1;min-width:0;background:#0a0710;border:1px solid #33212c;border-radius:9px;color:var(--ink);font-family:'JetBrains Mono',monospace;font-size:14px;padding:13px}
+.rowi input:focus{outline:none;border-color:var(--red);box-shadow:0 0 0 3px #e8303a22}
+.go{border:none;border-radius:9px;padding:0 16px;cursor:pointer;font-family:'Press Start 2P',monospace;font-size:10px;color:#fff;background:linear-gradient(180deg,var(--red),#a4131c);box-shadow:0 0 14px #e8303a55}
+.go:active{transform:translateY(1px)}.go:disabled{filter:grayscale(.6) brightness(.7);box-shadow:none;cursor:not-allowed}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}
+.chip{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);background:#120c16;border:1px solid #2c1c26;border-radius:7px;padding:7px 11px;cursor:pointer}
+.chip:hover{border-color:var(--red);color:var(--ink)}.chip:disabled{opacity:.5;cursor:not-allowed}
+footer{margin-top:16px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.12em;color:var(--faint);text-transform:uppercase}
+.zzz text{opacity:0}
+.sleeping .zz1{animation:zf 2.2s ease-in-out infinite}
+.sleeping .zz2{animation:zf 2.2s ease-in-out infinite .55s}
+.sleeping .zz3{animation:zf 2.2s ease-in-out infinite 1.1s}
+@keyframes zf{0%{opacity:0;transform:translate(0,0)}25%{opacity:.95}100%{opacity:0;transform:translate(4px,-10px)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<svg class="logo" viewBox="0 0 10 10" shape-rendering="crispEdges"><rect width="10" height="10" fill="#0e0a14"/><rect x="4" y="4" width="2" height="2" fill="#e8303a"/><rect x="1" y="1" width="1" height="1" fill="#37e0c5"/><rect x="8" y="2" width="1" height="1" fill="#f4b942"/></svg>
+<div><h1>ORBIT <b>MISSION DECK</b></h1><div class="tag">Full crew · 6 agents · walk · work · nap (zzz)</div></div>
+<div class="pill"><span class="d" id="dled"></span><span id="pill">Idle</span></div>
+</header>
+<div class="panel">
+<div class="ph"><span class="dots"><i></i><i></i><i></i></span><span class="lbl">Mission Deck — live</span></div>
+<div class="office"><svg id="scene" viewBox="0 0 700 400" aria-hidden="true"></svg></div>
+</div>
+<div class="panel">
+<div class="ph"><span class="dots"><i></i><i></i><i></i></span><span class="lbl">orbit@crew ~/orbitcrm</span></div>
+<div class="term" id="term"></div>
+</div>
+<div class="console">
+<div class="l">Order the crew</div>
+<div class="rowi"><input id="cmd" autocomplete="off" placeholder="e.g. Build a lead-capture landing page"/><button class="go" id="run">RUN</button></div>
+<div class="chips" id="chips"></div>
+</div>
+<footer>Orbit Mission Deck · cockpit preview — same crew runs for real inside your app</footer>
+</div>
+<script>
+(function(){
+"use strict";
+var NS="http://www.w3.org/2000/svg",scene=document.getElementById('scene');
+function el(t,a,p){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);(p||scene).appendChild(e);return e;}
+var defs=el('defs',{});
+var lp=el('radialGradient',{id:'lp',cx:'50%',cy:'30%',r:'70%'},defs);
+el('stop',{offset:'0%','stop-color':'#fff','stop-opacity':'.08'},lp);
+el('stop',{offset:'100%','stop-color':'#fff','stop-opacity':'0'},lp);
+var gl=el('radialGradient',{id:'gl',cx:'50%',cy:'50%',r:'55%'},defs);
+el('stop',{offset:'0%','stop-color':'#ff3b45','stop-opacity':'.9'},gl);
+el('stop',{offset:'100%','stop-color':'#ff3b45','stop-opacity':'0'},gl);
+el('rect',{x:0,y:0,width:700,height:400,fill:'#0c0816'},scene);
+for(var xi=4;xi<696;xi+=40)for(var yi=44;yi<396;yi+=40){
+el('rect',{x:xi,y:yi,width:40,height:40,fill:(((xi+yi)/40|0)%2?'#120c1c':'#160f22'),stroke:'#1b1326','stroke-width':.5},scene);}
+el('ellipse',{cx:155,cy:155,rx:130,ry:100,fill:'url(#lp)'},scene);
+el('ellipse',{cx:530,cy:255,rx:130,ry:100,fill:'url(#lp)'},scene);
+el('ellipse',{cx:350,cy:200,rx:110,ry:85,fill:'url(#lp)'},scene);
+el('rect',{x:0,y:0,width:700,height:44,fill:'#160f1e'},scene);
+el('rect',{x:0,y:42,width:700,height:3,fill:'#2a1c30'},scene);
+el('rect',{x:0,y:0,width:6,height:400,fill:'#1d1422'},scene);
+el('rect',{x:694,y:0,width:6,height:400,fill:'#1d1422'},scene);
+el('rect',{x:0,y:394,width:700,height:6,fill:'#1d1422'},scene);
+el('rect',{x:365,y:7,width:310,height:32,rx:3,fill:'#0a0f1e',stroke:'#22182c','stroke-width':1.5},scene);
+for(var si=0;si<44;si++)el('circle',{cx:370+Math.random()*300,cy:9+Math.random()*27,r:Math.random()<.25?1.3:.6,fill:'#fff',opacity:(.3+Math.random()*.65).toFixed(2)},scene);
+el('circle',{cx:626,cy:23,r:12,fill:'#e8303a',opacity:.85},scene);
+el('circle',{cx:621,cy:18,r:4.5,fill:'#ff8088',opacity:.6},scene);
+el('text',{x:18,y:30,fill:'#ff5d66','font-family':"'Press Start 2P'",'font-size':'10',opacity:.9,style:'filter:drop-shadow(0 0 5px #e8303a)'},scene).textContent='ORBIT';
+el('rect',{x:36,y:48,width:145,height:9,rx:2,fill:'#3a2740'},scene);
+el('rect',{x:36,y:48,width:145,height:65,rx:3,fill:'#15101e',stroke:'#3a2740','stroke-width':2},scene);
+el('rect',{x:46,y:59,width:36,height:22,rx:1,fill:'#1e1630'},scene);
+el('polyline',{points:'49,77 59,65 67,70 81,59',fill:'none',stroke:'#37e0c5','stroke-width':1.5},scene);
+el('rect',{x:88,y:59,width:16,height:16,fill:'#f4b942',opacity:.85},scene);
+el('rect',{x:109,y:59,width:16,height:16,fill:'#e8303a',opacity:.85},scene);
+el('rect',{x:130,y:59,width:16,height:16,fill:'#a78bfa',opacity:.85},scene);
+el('rect',{x:46,y:84,width:95,height:2,fill:'#665f73',opacity:.5},scene);
+el('rect',{x:46,y:90,width:72,height:2,fill:'#665f73',opacity:.4},scene);
+el('text',{x:108,y:124,'text-anchor':'middle',fill:'#8a8398','font-family':"'Press Start 2P'",'font-size':'6'},scene).textContent='BRIEFING';
+el('ellipse',{cx:136,cy:178,rx:55,ry:28,fill:'#241430'},scene);
+el('ellipse',{cx:136,cy:178,rx:40,ry:18,fill:'#2f1d3a',stroke:'#43314a','stroke-width':1.5},scene);
+var DESKS={
+  researcher:{x:490,y:55,seat:{x:530,y:110},color:'#37e0c5',name:'LEAD GEN'},
+  webdev:{x:490,y:175,seat:{x:530,y:165},color:'#f4b942',name:'WEB DEV'},
+  appdev:{x:490,y:290,seat:{x:530,y:280},color:'#a78bfa',name:'APP DEV'},
+  sales:{x:260,y:290,seat:{x:300,y:280},color:'#fb923c',name:'SALES'},
+  ops:{x:260,y:175,seat:{x:300,y:165},color:'#f472b6',name:'OPS'}
+};
+var SCREENS={};
+function buildPC(d,k){
+  el('rect',{x:d.x,y:d.y,width:90,height:34,rx:3,fill:'#2a1d2e',stroke:'#3a2740','stroke-width':1},scene);
+  el('rect',{x:d.x,y:d.y+30,width:90,height:6,fill:'#1d1422'},scene);
+  el('ellipse',{cx:d.x+34,cy:d.y+14,rx:32,ry:18,fill:'url(#gl)',id:'glow-'+k,opacity:'0'},scene);
+  el('rect',{x:d.x+8,y:d.y+5,width:32,height:22,rx:1,fill:'#0a0710',stroke:'#3a2740','stroke-width':1.5},scene);
+  var s1=el('rect',{x:d.x+10,y:d.y+7,width:28,height:18,fill:'#14101e'},scene);
+  el('rect',{x:d.x+44,y:d.y+5,width:28,height:22,rx:1,fill:'#0a0710',stroke:'#3a2740','stroke-width':1.5},scene);
+  var s2=el('rect',{x:d.x+46,y:d.y+7,width:24,height:18,fill:'#14101e'},scene);
+  SCREENS[k]=[s1,s2];
+  el('rect',{x:d.x+76,y:d.y+5,width:10,height:22,rx:1,fill:'#161019'},scene);
+  el('rect',{x:d.x+78,y:d.y+9,width:6,height:2,fill:'#37e0c5',opacity:.7},scene);
+  el('rect',{x:d.x+12,y:d.y+27,width:36,height:5,rx:1,fill:'#120c18'},scene);
+  el('rect',{x:d.x+2,y:d.y+23,width:8,height:8,rx:1,fill:'#e8303a'},scene);
+  el('circle',{cx:d.x+6,cy:d.y+27,r:2,fill:d.color,opacity:.9},scene);
+  el('text',{x:d.x+45,y:d.y-5,'text-anchor':'middle',fill:d.color,'font-family':"'Press Start 2P'",'font-size':'6',opacity:.9},scene).textContent=d.name;
+  el('circle',{cx:d.seat.x,cy:d.seat.y,r:10,fill:'none',stroke:'#2a1c30','stroke-width':3.5},scene);
+}
+Object.keys(DESKS).forEach(function(k){buildPC(DESKS[k],k);});
+function screen(k,mode){
+  var arr=SCREENS[k];if(!arr)return;
+  var f=mode==='work'?'#e8303a':mode==='done'?'#1f9f76':'#14101e';
+  arr.forEach(function(s){s.setAttribute('fill',f);});
+  var g=document.getElementById('glow-'+k);
+  if(g)g.setAttribute('opacity',mode==='work'?'1':'0');
+}
+el('rect',{x:654,y:160,width:26,height:48,rx:2,fill:'#171020'},scene);
+for(var ri=0;ri<7;ri++)el('rect',{x:657,y:166+ri*6,width:20,height:2.5,fill:(ri%2?'#37e0c5':'#36d399'),opacity:.8},scene);
+function plant(px,py){el('rect',{x:px-4,y:py,width:8,height:8,fill:'#6b3a1f'},scene);el('circle',{cx:px,cy:py-3,r:8,fill:'#2f8f5e'},scene);el('circle',{cx:px-5,cy:py,r:4.5,fill:'#36a86c'},scene);el('circle',{cx:px+5,cy:py,r:4.5,fill:'#288457'},scene);}
+plant(28,382);plant(350,382);plant(680,382);
+function astronaut(parent,color,name,role){
+  var g=el('g',{},parent);
+  el('ellipse',{cx:0,cy:10,rx:9,ry:3,fill:'#000',opacity:.35},g);
+  var fl=el('rect',{x:-5,y:5,width:4,height:5,rx:1.5,fill:'#d8d8e0'},g);
+  var fr=el('rect',{x:1,y:5,width:4,height:5,rx:1.5,fill:'#d8d8e0'},g);
+  var bodyG=el('g',{},g);
+  el('rect',{x:-6,y:-4,width:12,height:11,rx:5,fill:'#eef0f6'},bodyG);
+  el('rect',{x:-6,y:0,width:12,height:3,fill:color,opacity:.9},bodyG);
+  el('rect',{x:-2,y:1,width:4,height:3,rx:1,fill:color},bodyG);
+  el('rect',{x:-8,y:-3,width:3,height:8,rx:1.5,fill:'#dfe1ea'},bodyG);
+  el('rect',{x:5,y:-3,width:3,height:8,rx:1.5,fill:'#dfe1ea'},bodyG);
+  el('circle',{cx:0,cy:-8,r:6.5,fill:'#f2f3f8'},bodyG);
+  el('path',{d:'M-4.5 -9 a4.5 4.5 0 0 1 9 0 a4.5 4.5 0 0 1 -9 0Z',fill:'#10131f'},bodyG);
+  var vis=el('ellipse',{cx:-1.4,cy:-9.4,rx:1.6,ry:1.1,fill:color,opacity:.85},bodyG);
+  el('circle',{cx:0,cy:-13,r:1.6,fill:color,opacity:.9},bodyG);
+  var zg=el('g',{'class':'zzz'},g);
+  el('text',{x:5,y:-15,'class':'zz1',fill:'#bfeede','font-family':"'Press Start 2P'",'font-size':'5'},zg).textContent='z';
+  el('text',{x:8,y:-18,'class':'zz2',fill:'#bfeede','font-family':"'Press Start 2P'",'font-size':'6'},zg).textContent='z';
+  el('text',{x:11,y:-21,'class':'zz3',fill:'#bfeede','font-family':"'Press Start 2P'",'font-size':'7'},zg).textContent='z';
+  el('text',{x:0,y:19,'text-anchor':'middle',fill:'#e7e3f0','font-family':"'Press Start 2P'",'font-size':'5.5'},g).textContent=name;
+  el('text',{x:0,y:26,'text-anchor':'middle',fill:color,'font-family':"'JetBrains Mono'",'font-size':'7',opacity:.85},g).textContent=role;
+  return {g:g,fl:fl,fr:fr,body:bodyG,vis:vis};
+}
+var COLORS={director:'#e8303a',researcher:'#37e0c5',webdev:'#f4b942',appdev:'#a78bfa',sales:'#fb923c',ops:'#f472b6'};
+var MEET={x:136,y:196};
+var BOARD={x:130,y:138};
+var WP=[{x:350,y:100},{x:650,y:220},{x:350,y:360},{x:220,y:240},{x:420,y:185},{x:136,y:230},{x:500,y:200},{x:380,y:140},{x:170,y:310},{x:460,y:340}];
+var NAMES={director:{name:'NOVA',role:'Director'},researcher:{name:'ASTRA',role:'Lead Gen'},webdev:{name:'ORION',role:'Web Dev'},appdev:{name:'LUNA',role:'App Dev'},sales:{name:'REX',role:'Sales'},ops:{name:'VERA',role:'Ops'}};
+var AG={};
+var AGENTS=['director','researcher','webdev','appdev','sales','ops'];
+AGENTS.forEach(function(k){
+  var color=COLORS[k];
+  var nm=NAMES[k];
+  var spr=astronaut(scene,color,nm.name,nm.role);
+  var start;
+  if(k==='director'){start=BOARD;}
+  else{var d=DESKS[k];start={x:d.seat.x,y:d.seat.y+16};}
+  AG[k]={spr:spr,x:start.x,y:start.y,tx:start.x,ty:start.y,state:'wander',pause:Math.random()*2,phase:Math.random()*6,speed:32+Math.random()*14,key:k};
+  spr.g.setAttribute('transform','translate('+start.x+','+start.y+')');
+});
+function deskSeat(k){var d=DESKS[k];return d?{x:d.seat.x,y:d.seat.y+16}:{x:350,y:220};}
+function pickWander(a){
+  if(a.key==='director'){a.tx=BOARD.x;a.ty=BOARD.y;return;}
+  if(Math.random()<.45){var s=deskSeat(a.key);a.tx=s.x;a.ty=s.y;}
+  else{var w=WP[(Math.random()*WP.length)|0];a.tx=w.x+(Math.random()*28-14);a.ty=w.y+(Math.random()*22-11);}
+}
+var last=0;
+function frame(t){
+  var dt=Math.min(.05,(t-last)/1000||0);last=t;
+  Object.keys(AG).forEach(function(k){
+    var a=AG[k];
+    // WORK STATE: lock to desk seat, no movement at all
+    if(a.state==='work'){
+      var seat=deskSeat(k);
+      a.tx=seat.x;a.ty=seat.y;
+      // snap immediately if drifted (handles first frame)
+      a.x=seat.x;a.y=seat.y;
+      a.spr.g.setAttribute('transform','translate('+a.x.toFixed(1)+','+a.y.toFixed(1)+')');
+      // visor glow pulse
+      a.spr.vis.setAttribute('opacity',(0.5+Math.abs(Math.sin(t/180))*0.5).toFixed(2));
+      a.spr.fl.setAttribute('y',5);a.spr.fr.setAttribute('y',5);
+      a.spr.body.setAttribute('transform','translate(0,0)');
+      a.spr.g.classList.remove('sleeping');
+      return;
+    }
+    // MEET STATE
+    if(a.state==='meet'){
+      if(k==='director'){a.tx=BOARD.x;a.ty=BOARD.y;}
+      else{a.tx=MEET.x+(k.charCodeAt(0)%5-2)*28;a.ty=MEET.y+8;}
+    }
+    // Director always near board when not in meeting
+    if(k==='director'&&a.state!=='meet'){a.tx=BOARD.x;a.ty=BOARD.y;}
+    var dx=a.tx-a.x,dy=a.ty-a.y,dist=Math.hypot(dx,dy);
+    var moving=dist>1.6;
+    if(a.state==='wander'&&dist<=2){
+      if(a.pause<=0)a.pause=0.7+Math.random()*2.6;
+      else{a.pause-=dt;if(a.pause<=0)pickWander(a);}
+      moving=false;
+    }
+    if(moving){
+      var sp2=a.speed*dt;if(sp2>dist)sp2=dist;
+      a.x+=dx/dist*sp2;a.y+=dy/dist*sp2;a.phase+=dt*11;
+      a.spr.body.setAttribute('transform','translate(0,'+(Math.sin(a.phase)*0.7).toFixed(2)+')');
+      a.spr.fl.setAttribute('y',(5+Math.sin(a.phase)*1.8).toFixed(2));
+      a.spr.fr.setAttribute('y',(5-Math.sin(a.phase)*1.8).toFixed(2));
+    }else{
+      a.spr.fl.setAttribute('y',5);a.spr.fr.setAttribute('y',5);
+      a.spr.body.setAttribute('transform','translate(0,0)');
+    }
+    // Zzz only when truly stopped and wandering (not working)
+    if(!moving&&a.state==='wander'&&k!=='director'){a.spr.g.classList.add('sleeping');}
+    else{a.spr.g.classList.remove('sleeping');}
+    a.spr.g.setAttribute('transform','translate('+a.x.toFixed(1)+','+a.y.toFixed(1)+')');
+  });
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+function setState(k,st){var a=AG[k];if(a)a.state=st;}
+var CREW={director:{n:'Director'},researcher:{n:'Lead Gen'},webdev:{n:'Web Dev'},appdev:{n:'App Dev'},sales:{n:'Sales'},ops:{n:'Ops'}};
+var term=document.getElementById('term');
+function row(h){var l=document.createElement('div');l.className='ln';l.innerHTML=h;term.appendChild(l);term.scrollTop=term.scrollHeight;return l;}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function out(c,t){row('<span class="g"> </span><span class="'+c+'">'+esc(t)+'</span>');}
+function wait(ms){return new Promise(function(r){setTimeout(r,ms);});}
+async function typeCmd(t){var l=row('<span class="prompt">orbit ❯</span> <span class="cmd"></span><span class="cur"></span>');var sp=l.querySelector('.cmd'),c=l.querySelector('.cur');for(var i=0;i<t.length;i++){sp.textContent+=t[i];term.scrollTop=term.scrollHeight;await wait(10+Math.random()*18);}c.remove();}
+function diff(f,a,d){row('<span class="g"> </span><span class="file">'+esc(f)+'</span>');row('<span class="g"> </span><span class="add">+ '+a+'</span>  <span class="del">- '+d+'</span>');}
+async function prog(label){var l=row('<span class="g"> </span><span class="mut">'+esc(label)+' </span><span class="bar"></span>');var b=l.querySelector('.bar');var B=['\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591','\u2593\u2593\u2593\u2591\u2591\u2591\u2591\u2591\u2591\u2591','\u2593\u2593\u2593\u2593\u2593\u2593\u2591\u2591\u2591\u2591','\u2593\u2593\u2593\u2593\u2593\u2593\u2593\u2593\u2593\u2591','\u2593\u2593\u2593\u2593\u2593\u2593\u2593\u2593\u2593\u2593'];for(var i=0;i<B.length;i++){b.textContent=B[i]+' '+(i*25)+'%';term.scrollTop=term.scrollHeight;await wait(130);}b.innerHTML='\u2593\u2593\u2593\u2593\u2593\u2593\u2593\u2593\u2593\u2593 <span class="ok">done</span>';}
+function route(o){
+  o=o.toLowerCase();var s={};
+  if(/research|competitor|market|find|analyz|intel|compare|lead|business|prospect/.test(o))s.researcher=1;
+  if(/landing|website|web|page|html|site|seo|copy|hero|design|ui|dashboard/.test(o))s.webdev=1;
+  if(/app|mobile|feature|component|automat|backend|api|supabase|sms|email|crm|trigger|contact|task|lead/.test(o))s.appdev=1;
+  if(/sales|pipeline|deal|close|prospect|quota|revenue|follow.?up/.test(o))s.sales=1;
+  if(/ops|report|analytic|metric|kpi|dashboard|track|monitor|status/.test(o))s.ops=1;
+  if(/everything|orbit|whole|full|launch|mvp/.test(o)){s.researcher=1;s.webdev=1;s.appdev=1;s.sales=1;s.ops=1;}
+  var k=Object.keys(s);
+  if(!k.length){s.researcher=1;s.appdev=1;k=['researcher','appdev'];}
+  return k;
+}
+function steps(k,order){var o=order.toLowerCase();
+  if(k==='researcher')return[
+    {c:'orbit leadgen --needs-website --area "Santiago DR"',o:[['info','Scraping businesses (OSM + Google Maps)...']]},
+    {p:'Filtering no-website'},
+    {o:[['mut','100 businesses found → Orbit pipeline (New)']]},
+    {c:'orbit draft-sms --per-lead',o:[['ok','✓ SMS drafted → moved to "SMS Drafted"']]},
+    {o:[['mut','ASTRA back at desk']]}
+  ];
+  if(k==='webdev'){var b=/dashboard|design|ui/.test(o)?[
+    {c:'orbit ui scaffold',o:[['info','Generating layout...']]},
+    {p:'Rendering'},{diff:['dashboard/page.tsx','96','12']}
+  ]:[
+    {c:'orbit web new landing',o:[['info','Scaffolding landing + form...']]},
+    {p:'Building hero'},{diff:['landing/page.tsx','124','0']}
+  ];return b.concat([
+    {c:'orbit wire form → contacts',o:[['ok','Form → contacts ✓']]},
+    {p:'Lighthouse'},{o:[['mut','Perf 98 · SEO 100']]}
+  ]);}
+  if(k==='appdev'){
+    if(/sms|email|welcome|automat|trigger/.test(o))return[
+      {c:'orbit secrets check',o:[['ok','Twilio ✓ Resend ✓']]},
+      {c:'orbit fn deploy welcome',o:[['info','Deploying...']]},
+      {p:'Install trigger'},{diff:['welcome-message.ts','71','0']},
+      {c:'orbit test send',o:[['ok','✓ SMS + email sent']]}
+    ];
+    if(/contact|lead|task/.test(o))return[
+      {c:'orbit db create_contact',o:[['ok','✓ contact created']]},
+      {c:'orbit db create_task',o:[['ok','✓ follow-up added']]},
+      {p:'Sync'},{o:[['mut','Workspace updated']]}
+    ];
+    return[{c:'orbit gen api route',o:[['info','Defining endpoint...']]},{p:'Build + auth'},{diff:['api/route.ts','58','4']},{c:'orbit deploy --preview',o:[['ok','✓ Preview live']]}];
+  }
+  if(k==='sales')return[
+    {c:'orbit pipeline update --stage "Follow-up"',o:[['info','Moving warm leads...']]},
+    {p:'Syncing CRM'},{o:[['mut','8 deals updated → stage "Proposal"']]},
+    {c:'orbit task create --follow-up --bulk',o:[['ok','✓ 12 follow-up tasks created']]}
+  ];
+  if(k==='ops')return[
+    {c:'orbit report weekly --workspace',o:[['info','Pulling metrics...']]},
+    {p:'Aggregating KPIs'},{o:[['mut','Pipeline: $42k · Deals: 23 · Win rate: 68%']]},
+    {c:'orbit alert --threshold 0.7 --metric conversion',o:[['ok','✓ Alerts set']]}
+  ];
+  return[];
+}
+async function runAgent(k,order){
+  setState(k,'work');screen(k,'work');
+  out('hdr','── '+CREW[k].n+' ───────');
+  await wait(700);
+  var ST=steps(k,order);
+  for(var i=0;i<ST.length;i++){
+    var s=ST[i];
+    if(s.c)await typeCmd(s.c);
+    if(s.o)for(var j=0;j<s.o.length;j++){out(s.o[j][0],s.o[j][1]);await wait(280+Math.random()*200);}
+    if(s.p)await prog(s.p);
+    if(s.diff)diff(s.diff[0],s.diff[1],s.diff[2]);
+    await wait(140);
+  }
+  screen(k,'done');
+  // brief pause at desk with screen green, then go back to wander
+  await wait(1800);
+  screen(k,false);
+  setState(k,'wander');
+}
+var running=false,runBtn=document.getElementById('run'),pill=document.getElementById('pill'),dled=document.getElementById('dled');
+async function run(order){
+  if(running)return;running=true;runBtn.disabled=true;
+  pill.textContent='Working';dled.classList.add('on');
+  Object.keys(SCREENS).forEach(function(k){screen(k,false);});
+  out('info','Director calls stand-up at the briefing board...');
+  ['director','researcher','webdev','appdev','sales','ops'].forEach(function(k){setState(k,'meet');});
+  await typeCmd('orbit dispatch "'+order+'"'  );
+  await wait(1500);
+  var crew=route(order);
+  out('mut','Crew assigned: '+crew.map(function(k){return NAMES[k].name;}).join(', '));
+  await wait(500);
+  setState('director','wander');
+  for(var i=0;i<crew.length;i++){
+    if(crew[i]==='director')continue;
+    await runAgent(crew[i],order);
+    await wait(220);
+  }
+  out('ok','✔ Mission complete — deliverables shipped.');
+  row('<span class="prompt">orbit ❯</span> <span class="cur"></span>');
+  pill.textContent='Idle';dled.classList.remove('on');
+  running=false;runBtn.disabled=false;
+}
+var QUICK=['Find 100 businesses that need websites','Build a lead-capture landing page','Add an SMS + email welcome flow','Update sales pipeline + follow-ups','Generate weekly ops report','Full launch: CRM + leads + site'];
+var chips=document.getElementById('chips');
+QUICK.forEach(function(q){var c=document.createElement('button');c.className='chip';c.textContent=q;c.onclick=function(){if(running)return;document.getElementById('cmd').value=q;run(q);};chips.appendChild(c);});
+runBtn.onclick=function(){var v=document.getElementById('cmd').value.trim();if(!v){out('warn','Type an order first.');return;}run(v);};
+document.getElementById('cmd').addEventListener('keydown',function(e){if(e.key==='Enter'){var v=this.value.trim();if(v)run(v);}});
+out('mut','Orbit Mission Deck online — 6-agent crew on the floor.');
+out('mut','Give an order: crew huddles at the board, then locks in at their PCs.');
+row('<span class="prompt">orbit ❯</span> <span class="cur"></span>');
+})();
+</script>
+</body>
+</html>

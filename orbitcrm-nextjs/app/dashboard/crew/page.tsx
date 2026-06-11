@@ -1,5 +1,5 @@
 'use client';
-// app/dashboard/crew/page.tsx — Orbit Office
+// app/dashboard/crew/page.tsx â Orbit Office
 // Canvas game loop. Agents walk between desks, idle-bob, type, think.
 // Large flat-art characters matching agent-office visual style.
 
@@ -8,16 +8,16 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 type Line   = { cls: string; text: string };
 type AState = 'idle' | 'thinking' | 'working' | 'walking' | 'done';
 
-// ── Canvas constants ──────────────────────────────────────────────────────
+// ââ Canvas constants ââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 const W = 640;   // canvas width
 const H = 520;   // canvas height
 
-// ── 4 crew desks — exact pixel positions ─────────────────────────────────
+// ââ 4 crew desks â exact pixel positions âââââââââââââââââââââââââââââââââ
 const DESKS = [
   { id: 'director',   name: 'Director',     role: 'coordinator',           color: '#e8303a', dx: 100, dy: 80  },
-  { id: 'researcher', name: 'Researcher',   role: 'intel · analysis',      color: '#37e0c5', dx: 390, dy: 80  },
-  { id: 'webdev',     name: 'Web Dev',      role: 'sites · ui',            color: '#a78bfa', dx: 100, dy: 310 },
-  { id: 'appdev',     name: 'App Dev',      role: 'backend · automations', color: '#f4b942', dx: 390, dy: 310 },
+  { id: 'researcher', name: 'Researcher',   role: 'intel Â· analysis',      color: '#37e0c5', dx: 390, dy: 80  },
+  { id: 'webdev',     name: 'Web Dev',      role: 'sites Â· ui',            color: '#a78bfa', dx: 100, dy: 310 },
+  { id: 'appdev',     name: 'App Dev',      role: 'backend Â· automations', color: '#f4b942', dx: 390, dy: 310 },
 ];
 
 const QUICK = [
@@ -28,15 +28,15 @@ const QUICK = [
 ];
 
 const EMOTE: Record<AState,string> = {
-  idle:'😌', thinking:'💡', working:'💻', walking:'🚶', done:'✅',
+  idle:'ð', thinking:'ð¡', working:'ð»', walking:'ð¶', done:'â',
 };
 
-// ── Wander spots (between desks) ─────────────────────────────────────────
+// ââ Wander spots (between desks) âââââââââââââââââââââââââââââââââââââââââ
 const WANDERS = [
   [270,200],[320,260],[240,300],[350,180],[280,350],[310,140],
 ];
 
-// ── Agent state ───────────────────────────────────────────────────────────
+// ââ Agent state âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 interface Ag {
   id:string; name:string; role:string; color:string;
   deskX:number; deskY:number;   // where their desk is
@@ -64,12 +64,12 @@ function mkAg(d: typeof DESKS[0]): Ag {
   };
 }
 
-// ═══════════════════════════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 // DRAWING
-// ═══════════════════════════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
 function drawRoom(c: CanvasRenderingContext2D) {
-  // Floor — warm grey (agent-office: #2d2d3d)
+  // Floor â warm grey (agent-office: #2d2d3d)
   c.fillStyle = '#2d2d3d';
   c.fillRect(0, 0, W, H);
 
@@ -173,12 +173,12 @@ function drawPlant(c: CanvasRenderingContext2D, x:number, y:number) {
   c.beginPath(); c.arc(x+10, y+6,  6,  0, Math.PI*2); c.fill();
 }
 
-// ── BIG FLAT-ART DESK (matching agent-office style) ───────────────────────
+// ââ BIG FLAT-ART DESK (matching agent-office style) âââââââââââââââââââââââ
 function drawDesk(c: CanvasRenderingContext2D, d: typeof DESKS[0], state: AState, t: number) {
   const {dx,dy,color} = d;
   const W2 = 140, H2 = 70;
 
-  // Desk body — dark with color accent border
+  // Desk body â dark with color accent border
   c.fillStyle = '#1e1630';
   roundRect(c, dx, dy+40, W2, H2, 10);
   c.fillStyle = '#241c3a';
@@ -228,7 +228,7 @@ function drawDesk(c: CanvasRenderingContext2D, d: typeof DESKS[0], state: AState
       c.fill();
     }
   } else {
-    // Idle — dim lines
+    // Idle â dim lines
     c.fillStyle = color + '40';
     c.fillRect(mx+6, my+10, 40, 4);
     c.fillStyle = '#ffffff20';
@@ -264,7 +264,7 @@ function drawDesk(c: CanvasRenderingContext2D, d: typeof DESKS[0], state: AState
   c.fillRect(dx+W2-18,  dy+105, 10, 10);
 }
 
-// ── BIG FLAT-ART CHARACTER (like agent-office) ────────────────────────────
+// ââ BIG FLAT-ART CHARACTER (like agent-office) ââââââââââââââââââââââââââââ
 function drawChar(c: CanvasRenderingContext2D, ag: Ag, t: number) {
   const bob = ag.state === 'idle' ? Math.sin(t/700 + ag.bobPh) * 3 : 0;
   const x = Math.round(ag.px);
@@ -277,7 +277,7 @@ function drawChar(c: CanvasRenderingContext2D, ag: Ag, t: number) {
   c.ellipse(x, y+70, 28, 8, 0, 0, Math.PI*2);
   c.fill();
 
-  // ── Legs ──────────────────────────────────────────────────────────────
+  // ââ Legs ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
   if (ag.state === 'walking') {
     const sw = Math.sin(t/140) * 10;
     // Left leg
@@ -298,11 +298,11 @@ function drawChar(c: CanvasRenderingContext2D, ag: Ag, t: number) {
     roundRect(c, x+3,  y+66, 17, 8, 3);
   }
 
-  // ── Body (shirt) — BIG rounded rect like agent-office ─────────────────
+  // ââ Body (shirt) â BIG rounded rect like agent-office âââââââââââââââââ
   c.fillStyle = col;
   roundRect(c, x-22, y+16, 44, 30, 12);
 
-  // ── Arms ──────────────────────────────────────────────────────────────
+  // ââ Arms ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
   if (ag.state === 'working') {
     const ta = ag.typeFr % 2 === 0 ? -4 : 4;
     c.fillStyle = col;
@@ -329,15 +329,15 @@ function drawChar(c: CanvasRenderingContext2D, ag: Ag, t: number) {
     c.beginPath(); c.arc(x+28, y+42, 8, 0, Math.PI*2); c.fill();
   }
 
-  // ── Neck ──────────────────────────────────────────────────────────────
+  // ââ Neck ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
   c.fillStyle = '#deb887';
   roundRect(c, x-8, y+6, 16, 12, 4);
 
-  // ── Head — big round ───────────────────────────────────────────────────
+  // ââ Head â big round âââââââââââââââââââââââââââââââââââââââââââââââââââ
   c.fillStyle = '#deb887';
   c.beginPath(); c.arc(x, y, 26, 0, Math.PI*2); c.fill();
 
-  // Hair (solid dark cap — different per color)
+  // Hair (solid dark cap â different per color)
   const hairMap: Record<string,string> = {
     '#e8303a':'#3e1f10','#37e0c5':'#0d3028','#a78bfa':'#1a0d30','#f4b942':'#2e1c00',
   };
@@ -348,7 +348,7 @@ function drawChar(c: CanvasRenderingContext2D, ag: Ag, t: number) {
   // Side hair
   c.beginPath(); c.arc(x-22, y+2, 10, Math.PI/2, -Math.PI/2); c.fill();
 
-  // ── Eyes ──────────────────────────────────────────────────────────────
+  // ââ Eyes ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
   const blink = ag.state === 'thinking' && Math.floor(t/160) % 9 === 0;
   c.fillStyle = '#fff';
   if (!blink) {
@@ -368,7 +368,7 @@ function drawChar(c: CanvasRenderingContext2D, ag: Ag, t: number) {
     c.fillRect(x+5,  y+3, 11, 2);
   }
 
-  // ── Mouth ─────────────────────────────────────────────────────────────
+  // ââ Mouth âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
   c.strokeStyle = ag.state === 'done' ? '#00b894' : '#b0896a';
   c.lineWidth = 2;
   c.beginPath();
@@ -380,7 +380,7 @@ function drawChar(c: CanvasRenderingContext2D, ag: Ag, t: number) {
   c.stroke();
 }
 
-// ── Emote bubble ─────────────────────────────────────────────────────────
+// ââ Emote bubble âââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function drawEmote(c: CanvasRenderingContext2D, ag: Ag) {
   if (ag.state === 'idle' || ag.emoteT <= 0) return;
   const alpha = Math.min(1, ag.emoteT / 40);
@@ -400,7 +400,7 @@ function drawEmote(c: CanvasRenderingContext2D, ag: Ag) {
   c.restore();
 }
 
-// ── roundRect helper ──────────────────────────────────────────────────────
+// ââ roundRect helper ââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function roundRect(c: CanvasRenderingContext2D, x:number,y:number,w:number,h:number,r:number) {
   c.beginPath();
   c.moveTo(x+r, y);
@@ -416,14 +416,14 @@ function roundRect(c: CanvasRenderingContext2D, x:number,y:number,w:number,h:num
   c.fill();
 }
 
-// ═══════════════════════════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 // React Component
-// ═══════════════════════════════════════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 export default function CrewPage() {
   const [order,    setOrder]   = useState('');
   const [running,  setRunning] = useState(false);
   const [lines,    setLines]   = useState<Line[]>([
-    { cls:'mut', text:'// Orbit Office — crew on standby.' },
+    { cls:'mut', text:'// Orbit Office â crew on standby.' },
     { cls:'mut', text:'// Send an order below. Agents actually work on your CRM.' },
   ]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -441,7 +441,7 @@ export default function CrewPage() {
 
   const push = useCallback((l:Line) => setLines(p=>[...p,l]), []);
 
-  // ── Game loop ──────────────────────────────────────────────────────────
+  // ââ Game loop ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
   useEffect(() => {
     const canvas = canvasRef.current; if (!canvas) return;
     const ctx = canvas.getContext('2d'); if (!ctx) return;
@@ -454,7 +454,7 @@ export default function CrewPage() {
       const dt = Math.min(now - (lastRef.current||now), 50);
       lastRef.current = now;
 
-      // ── Draw scene ────────────────────────────────────────────────────
+      // ââ Draw scene ââââââââââââââââââââââââââââââââââââââââââââââââââââ
       ctx.clearRect(0, 0, W, H);
       drawRoom(ctx);
 
@@ -473,7 +473,7 @@ export default function CrewPage() {
       sorted.forEach(ag => {
         const assigned = sMapRef.current[ag.id];
 
-        // ── State logic ────────────────────────────────────────────────
+        // ââ State logic ââââââââââââââââââââââââââââââââââââââââââââââââ
         if (assigned === 'working' || assigned === 'thinking') {
           // Move toward own desk seat
           const seat = { x: ag.deskX+65, y: ag.deskY+20 };
@@ -500,7 +500,7 @@ export default function CrewPage() {
           }
         }
 
-        // ── Move ───────────────────────────────────────────────────────
+        // ââ Move âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
         const dx = ag.tx - ag.px, dy = ag.ty - ag.py;
         const dist = Math.sqrt(dx*dx+dy*dy);
         if (dist > 2 && ag.state === 'walking') {
@@ -514,7 +514,7 @@ export default function CrewPage() {
           ag.emote = EMOTE[ag.state]; ag.emoteT = ag.state!=='idle'?999:0;
         }
 
-        // ── Animate ────────────────────────────────────────────────────
+        // ââ Animate ââââââââââââââââââââââââââââââââââââââââââââââââââââ
         ag.emoteT  = Math.max(0, ag.emoteT - dt);
         ag.typeT  += dt; if (ag.typeT>100){ ag.typeFr++; ag.typeT=0; }
         ag.walkT  += dt; if (ag.walkT>150){ ag.walkFr=(ag.walkFr+1)%4; ag.walkT=0; }
@@ -531,7 +531,7 @@ export default function CrewPage() {
 
   function setState(id:string, s:AState) { sMapRef.current[id] = s; }
 
-  // ── SSE streaming ──────────────────────────────────────────────────────
+  // ââ SSE streaming ââââââââââââââââââââââââââââââââââââââââââââââââââââââ
   async function run(cmd:string) {
     if (running || !cmd.trim()) return;
     setRunning(true);
@@ -558,7 +558,7 @@ export default function CrewPage() {
           onEvent(ev);
         }
       }
-    } catch(e:any){ push({cls:'warn',text:`Connection lost: ${e?.message}`}); }
+    } catch(e){ push({cls:'warn',text:`Connection lost: ${e?.message}`}); }
     finally { setRunning(false); DESKS.forEach(d=>setState(d.id,'idle')); }
   }
 
@@ -570,7 +570,7 @@ export default function CrewPage() {
         setState('director','working');
         setTimeout(()=>setState(id,'thinking'),300);
         setTimeout(()=>setState(id,'working'),1800);
-        push({cls:'hdr',text:`─── ${DESKS.find(d=>d.id===id)?.name||id} ─────────────────`});
+        push({cls:'hdr',text:`âââ ${DESKS.find(d=>d.id===id)?.name||id} âââââââââââââââââ`});
         if(ev.task) push({cls:'mut',text:`// ${ev.task}`});
         break;
       }
@@ -580,8 +580,8 @@ export default function CrewPage() {
         break;
       case 'line': push({cls:ev.cls||'mut',text:ev.text}); break;
       case 'agent_done': setState(ev.agent,'done'); setTimeout(()=>setState(ev.agent,'idle'),3000); break;
-      case 'done': push({cls:'ok',text:'✔ Mission complete — crew reported in.'}); push({cls:'prompt',text:'orbit > _'}); break;
-      case 'error': push({cls:'warn',text:`✖ ${ev.msg}`}); break;
+      case 'done': push({cls:'ok',text:'â Mission complete â crew reported in.'}); push({cls:'prompt',text:'orbit > _'}); break;
+      case 'error': push({cls:'warn',text:`â ${ev.msg}`}); break;
     }
   }
 
@@ -593,10 +593,10 @@ export default function CrewPage() {
       <div className="oo-hd">
         <span className="oo-hdot" />
         <span className="oo-htitle">ORBIT <b>OFFICE</b></span>
-        <span className="oo-hsub">pixel-art workstation · agents run live on your CRM</span>
+        <span className="oo-hsub">pixel-art workstation Â· agents run live on your CRM</span>
         <div className="oo-hpill">
           <span className={`oo-hled ${running?'on':''}`}/>
-          {running?'Working…':'Standby'}
+          {running?'Workingâ¦':'Standby'}
         </div>
       </div>
 
@@ -606,7 +606,7 @@ export default function CrewPage() {
         <div className="oo-left">
           <div className="oo-bar">
             <span className="oo-dots"><i/><i/><i/></span>
-            <span>ORBIT-OFFICE · FLOOR 1</span>
+            <span>ORBIT-OFFICE Â· FLOOR 1</span>
           </div>
           <div className="oo-cw">
             <canvas ref={canvasRef} width={W} height={H} className="oo-canvas"/>
@@ -628,7 +628,7 @@ export default function CrewPage() {
         <div className="oo-right">
           <div className="oo-bar">
             <span className="oo-dots"><i/><i/><i/></span>
-            <span>orbit@crew:~/workspace — live log</span>
+            <span>orbit@crew:~/workspace â live log</span>
           </div>
           <div className="oo-term" ref={termRef}>
             {lines.map((l,i)=><div key={i} className={`oo-ln ${l.cls}`}>{l.text}</div>)}
@@ -646,7 +646,7 @@ export default function CrewPage() {
             placeholder="e.g. Create a contact named Alex at TechCorp with a follow-up task"
             disabled={running}/>
           <button className="oo-run" onClick={()=>run(order)} disabled={running}>
-            {running?'…':'RUN'}
+            {running?'â¦':'RUN'}
           </button>
         </div>
         <div className="oo-chips">
@@ -660,7 +660,7 @@ export default function CrewPage() {
   );
 }
 
-// ─── CSS ──────────────────────────────────────────────────────────────────
+// âââ CSS ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 const CSS = `
 .oo-root{font-family:'DM Sans',system-ui,sans-serif;color:#eceaf4}
 /* header */

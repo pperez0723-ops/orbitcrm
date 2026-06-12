@@ -71,6 +71,11 @@ export default function ContactsClient({ initial, workspaceId }:
         })
         .select().single();
       if (error) throw error;
+      // fire automations instantly (welcome SMS etc.) — don't block the UI
+      fetch('/api/contacts/created', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contact_id: (data as Contact).id }),
+      }).catch(() => {});
       setRows([data as Contact, ...rows]);
       setF({ fname: '', lname: '', email: '', phone: '', company: '', source: 'website' });
       setOpen(false);

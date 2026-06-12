@@ -25,8 +25,8 @@ export default async function DealsPage() {
     .maybeSingle();
 
   const [{ data: stages }, { data: deals }, { data: contacts }] = await Promise.all([
-    supabase.from('stages').select('*').eq('workspace_id', workspaceId!).order('sort_order'),
-    supabase.from('deals').select('*, contacts(fname,lname,company)').eq('workspace_id', workspaceId!),
+    supabase.from('stages').select('*').eq('workspace_id', workspaceId!).eq('pipeline_id', pipeline?.id).order('sort_order'),
+    supabase.from('deals').select('*, contacts(fname,lname,company)').eq('workspace_id', workspaceId!).eq('pipeline_id', pipeline?.id),
     supabase.from('contacts').select('id,fname,lname,company').eq('workspace_id', workspaceId!).order('created_at', { ascending: false }),
   ]);
 

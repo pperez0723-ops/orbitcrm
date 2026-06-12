@@ -6,1076 +6,759 @@
 <title>ORBIT · Mission Deck</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;700&family=Orbitron:wght@400;500;700;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
 <style>
 :root{
-  --bg:#010308;
-  --gold:#c9a84c;--gold2:#f0c96b;--gold3:#ffe299;
-  --cyan:#00e5ff;--cyan2:#26f0ff;
-  --purple:#9b59ff;--purple2:#b47bff;
-  --green:#00ff9d;--green2:#39ffb5;
-  --red:#ff3a5c;--orange:#ff8c42;--pink:#ff6eb4;
-  --ink:#dce8ff;--ink2:#8ca0c0;--ink3:#3a4a62;
-  --line:rgba(180,200,255,0.07);--line2:rgba(180,200,255,0.14);
-  --shadow:0 12px 60px rgba(0,0,0,0.7);
-  --hull:#0a0f1e;--hull2:#080d18;--hull3:#060a14;
-  --panel-bg:#0d1528;--panel-rim:rgba(0,229,255,0.18);
-  --glow-gold:0 0 20px rgba(201,168,76,0.5),0 0 60px rgba(201,168,76,0.2);
-  --glow-cyan:0 0 20px rgba(0,229,255,0.5),0 0 60px rgba(0,229,255,0.2);
+  --bg:#04080f;--hull:#060d18;--hull2:#0a1526;--panel:#091322;
+  --red:#e8303a;--rs:#ff5d66;--amber:#f4b942;--teal:#00e5ff;
+  --green:#36d399;--violet:#a78bfa;--pink:#f472b6;--orange:#fb923c;
+  --ice:#7dd3fc;--gold:#f0c96b;
+  --ink:#e8f4ff;--dim:#7a9ab8;--faint:#3a5a78;
+  --glow-r:0 0 20px #e8303a88,0 0 60px #e8303a33;
+  --glow-c:0 0 20px #00e5ff88,0 0 60px #00e5ff22;
+  --glow-g:0 0 15px #36d39966;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{min-height:100dvh;background:var(--bg);color:var(--ink);font-family:'Space Grotesk',system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+html,body{background:var(--bg);color:var(--ink);font-family:'Orbitron',monospace;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body{min-height:100dvh}
+.page{max-width:1280px;margin:0 auto;padding:12px 16px 32px}
 
-/* ─── HEADER ─── */
-.hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid rgba(0,229,255,0.12);background:rgba(1,3,8,0.95);backdrop-filter:blur(20px);position:sticky;top:0;z-index:200}
-.logo-wrap{display:flex;align-items:center;gap:12px}
-.logo-mark{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,var(--gold),var(--gold2));display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:13px;font-weight:900;color:#000;box-shadow:var(--glow-gold)}
-.brand{font-family:'Orbitron',monospace;font-size:17px;font-weight:700;background:linear-gradient(135deg,var(--gold),var(--gold2),var(--gold3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:2px}
-.brand-sub{font-size:9px;color:var(--ink3);letter-spacing:3px;text-transform:uppercase;font-family:'JetBrains Mono',monospace}
-.hdr-right{display:flex;align-items:center;gap:10px}
-.live-pill{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;background:rgba(0,255,157,0.07);border:1px solid rgba(0,255,157,0.22);font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--green);letter-spacing:1px}
-.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:ldot 2s infinite}
-@keyframes ldot{0%,100%{opacity:1}50%{opacity:0.4}}
-.crew-pill{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--ink3);letter-spacing:1px;padding:5px 12px;border:1px solid var(--line2);border-radius:20px}
+/* TOP BAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;background:linear-gradient(180deg,#0d1f35,#060d18);border-bottom:1px solid #1a3050;margin-bottom:12px}
+.topbar-logo{font-size:18px;font-weight:900;letter-spacing:.15em;color:var(--teal);text-shadow:var(--glow-c)}
+.topbar-title{font-size:9px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase}
+.topbar-status{display:flex;gap:16px;align-items:center;font-family:'JetBrains Mono',monospace;font-size:10px}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px}
+.s-green{background:var(--green);box-shadow:var(--glow-g)}
+.s-amber{background:var(--amber)}
+.s-red{background:var(--red);box-shadow:var(--glow-r);animation:blink 1.2s steps(1) infinite}
+@keyframes blink{50%{opacity:.2}}
+#clock{color:var(--teal);letter-spacing:.12em}
 
-/* ─── WRAP ─── */
-.wrap{max-width:1300px;margin:0 auto;padding:20px 18px 40px}
-
-/* ═══════════════════════════════════
-   SPACESHIP INTERIOR
-═══════════════════════════════════ */
-.ship-outer{
-  position:relative;
-  border-radius:0 0 24px 24px;
-  overflow:hidden;
-  border:1px solid rgba(0,229,255,0.15);
-  border-top:3px solid rgba(0,229,255,0.35);
-  box-shadow:0 0 0 1px rgba(0,229,255,0.05),var(--shadow),0 0 100px rgba(0,229,255,0.06);
-  margin-bottom:22px;
-}
-
-/* Top hull bar */
-.hull-top{
-  height:38px;
-  background:linear-gradient(180deg,#0c1830 0%,#080e1c 100%);
-  border-bottom:1px solid rgba(0,229,255,0.15);
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0 20px;
-  position:relative;
-  overflow:hidden;
-}
-.hull-top::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:2px;
-  background:linear-gradient(90deg,transparent 0%,var(--cyan) 20%,var(--cyan2) 50%,var(--cyan) 80%,transparent 100%);
-  opacity:0.7;box-shadow:0 0 15px rgba(0,229,255,0.6);
-}
-.hull-label{font-family:'Orbitron',monospace;font-size:9px;color:var(--cyan);letter-spacing:3px;text-transform:uppercase}
-.hull-indicators{display:flex;gap:10px;align-items:center}
-.ind{width:6px;height:6px;border-radius:50%;box-shadow:0 0 6px currentColor}
-.ind.g{color:var(--green);background:var(--green);animation:ldot 3s infinite}
-.ind.c{color:var(--cyan);background:var(--cyan);animation:ldot 2s 0.5s infinite}
-.ind.o{color:var(--orange);background:var(--orange);animation:ldot 4s 1s infinite}
-.hull-clock{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--ink3);letter-spacing:1px}
-
-/* ─── MAIN SHIP SCENE ─── */
-.ship-scene{
-  width:100%;
-  height:580px;
-  position:relative;
-  overflow:hidden;
-  background:
-    radial-gradient(ellipse 100% 60% at 50% 0%,#0d1835 0%,transparent 60%),
-    linear-gradient(180deg,#060c1a 0%,#04080f 50%,#020508 100%);
-}
-
-/* STARFIELD through windows */
-.viewport-strip{
-  position:absolute;top:0;left:0;right:0;height:90px;
-  background:linear-gradient(180deg,#010510 0%,#020815 60%,transparent 100%);
-  overflow:hidden;
-}
-.viewport-strip::after{
-  content:'';position:absolute;bottom:0;left:0;right:0;height:20px;
-  background:linear-gradient(180deg,transparent,rgba(0,8,20,0.8));
-}
-.star-sm{position:absolute;border-radius:50%;background:#fff;animation:twk var(--d,3s) var(--del,0s) infinite alternate}
-@keyframes twk{0%{opacity:var(--o1,.2)}100%{opacity:var(--o2,.9)}}
-
-/* VIEWPORT WINDOWS */
-.windows-row{
-  position:absolute;top:0;left:0;right:0;
-  display:flex;gap:0;
-  padding:0 40px;
-  justify-content:space-between;
-}
-.window{
-  width:120px;height:70px;
-  border-radius:0 0 60px 60px;
-  border:2px solid rgba(0,229,255,0.2);
-  border-top:none;
-  background:linear-gradient(180deg,#010818 0%,#020c20 100%);
-  position:relative;overflow:hidden;
-  box-shadow:inset 0 0 20px rgba(0,100,200,0.15),0 0 15px rgba(0,229,255,0.08);
-}
-.window::before{
-  content:'';position:absolute;top:8px;left:10px;right:10px;bottom:5px;
-  background:radial-gradient(ellipse at 30% 30%,rgba(255,255,255,0.04) 0%,transparent 70%);
-  border-radius:0 0 50px 50px;
-}
-/* Stars inside windows */
-.wstar{position:absolute;border-radius:50%;background:#fff;animation:twk 2s var(--d,0s) infinite alternate}
-
-/* CEILING / OVERHEAD PANEL */
-.ceiling-panel{
-  position:absolute;top:70px;left:0;right:0;height:28px;
-  background:linear-gradient(180deg,#0c1830 0%,#080e1c 100%);
-  border-bottom:1px solid rgba(0,229,255,0.1);
-  display:flex;align-items:center;padding:0 30px;gap:20px;
-  overflow:hidden;
-}
-.ceiling-panel::before{
-  content:'';position:absolute;inset:0;
-  background:repeating-linear-gradient(90deg,transparent,transparent 48px,rgba(0,229,255,0.04) 48px,rgba(0,229,255,0.04) 49px);
-}
-.ovhd{width:8px;height:8px;border-radius:2px}
-
-/* FLOOR */
-.ship-floor{
-  position:absolute;bottom:0;left:0;right:0;height:80px;
-  background:linear-gradient(180deg,transparent 0%,rgba(5,12,28,0.9) 50%,#030810 100%);
-}
-.ship-floor::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:2px;
-  background:linear-gradient(90deg,transparent,rgba(0,229,255,0.2),transparent);
-  box-shadow:0 0 15px rgba(0,229,255,0.15);
-}
-.floor-grid{
-  position:absolute;bottom:0;left:0;right:0;height:60px;
-  background:
-    repeating-linear-gradient(90deg,transparent,transparent 79px,rgba(0,229,255,0.04) 79px,rgba(0,229,255,0.04) 80px),
-    repeating-linear-gradient(0deg,transparent,transparent 19px,rgba(0,229,255,0.04) 19px,rgba(0,229,255,0.04) 20px);
-  transform:perspective(200px) rotateX(35deg);
-  transform-origin:bottom;
-}
-
-/* SIDE WALLS */
-.wall-left,.wall-right{
-  position:absolute;top:70px;bottom:80px;width:36px;
-  background:linear-gradient(90deg,#060c1c,transparent);
-}
-.wall-right{right:0;background:linear-gradient(270deg,#060c1c,transparent)}
-.wall-left::before,.wall-right::before{
-  content:'';position:absolute;top:0;width:1px;height:100%;
-  background:linear-gradient(180deg,rgba(0,229,255,0.2),transparent);
-}
-.wall-left::before{right:0}
-.wall-right::before{left:0}
-
-/* AMBIENT GLOW BLOBS */
-.amb{position:absolute;border-radius:50%;pointer-events:none;filter:blur(100px);opacity:0.08}
-
-/* ═══════════════
-   WORKSTATIONS
-═══════════════ */
-.station{
-  position:absolute;
-  display:flex;flex-direction:column;align-items:center;
-  /* stations are FIXED — no transition for position */
-}
-
-/* Station desk — viewed from above/front */
-.stn-desk{
-  position:relative;
-  width:88px;
-  cursor:pointer;
-}
-/* Desk surface */
-.stn-top{
-  width:88px;height:44px;
-  background:linear-gradient(180deg,#141f38 0%,#0d1628 100%);
-  border:1px solid rgba(100,160,255,0.18);
-  border-radius:10px 10px 4px 4px;
-  position:relative;overflow:hidden;
-  box-shadow:0 -2px 12px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.06);
-}
-.stn-top::before{
-  content:'';position:absolute;top:0;left:8%;right:8%;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent);
-}
-/* Monitor screen */
-.stn-monitor{
-  position:absolute;left:8px;top:5px;right:8px;bottom:6px;
-  border-radius:5px;
-  background:#030810;
-  border:1px solid rgba(0,229,255,0.15);
-  overflow:hidden;
-  box-shadow:inset 0 0 8px rgba(0,0,0,0.8);
-}
-.stn-monitor::before{
-  content:'';position:absolute;inset:0;
-  background:repeating-linear-gradient(0deg,rgba(0,229,255,0.02) 0px,rgba(0,229,255,0.02) 1px,transparent 1px,transparent 3px);
-}
-.stn-screen{
-  position:relative;z-index:1;
-  width:100%;height:100%;
-  display:flex;align-items:center;justify-content:center;
-  font-family:'JetBrains Mono',monospace;font-size:5.5px;
-  color:rgba(0,229,255,0.55);text-align:center;line-height:1.5;
-  padding:3px;
-}
-/* desk body/front */
-.stn-body{
-  width:76px;height:12px;
-  background:linear-gradient(180deg,#0d1628,#060e1c);
-  border:1px solid rgba(100,160,255,0.1);border-top:none;
-  border-radius:0 0 6px 6px;
-  display:flex;align-items:center;justify-content:flex-end;padding-right:6px;
-}
-.stn-led{
-  width:4px;height:4px;border-radius:50%;
-  background:var(--green);box-shadow:0 0 5px var(--green);
-  transition:background 0.3s,box-shadow 0.3s;
-}
-
-/* ACTIVE state — screen glow red, led red */
-.station.active .stn-monitor{
-  box-shadow:inset 0 0 15px rgba(255,50,80,0.25),0 0 8px rgba(255,50,80,0.15);
-}
-.station.active .stn-screen{color:rgba(255,80,100,0.85)}
-.station.active .stn-led{background:var(--red);box-shadow:0 0 8px var(--red);animation:lpulse 0.7s infinite}
-@keyframes lpulse{0%,100%{opacity:1}50%{opacity:0.3}}
-
-/* station label */
-.stn-label{
-  font-family:'JetBrains Mono',monospace;font-size:7.5px;
-  color:var(--ink3);letter-spacing:1.5px;text-transform:uppercase;
-  margin-top:5px;text-align:center;
-}
-.stn-label b{display:block;font-size:8.5px;font-weight:700;color:var(--ink2);margin-bottom:1px;letter-spacing:0.5px}
-
-/* ═══════════════════
-   ASTRONAUTS (pixel-art style, seated at station)
-═══════════════════ */
-.astro{
-  position:absolute;
-  width:40px;height:52px;
-  /* NO transition/movement — stays at station */
-}
-.astro svg{width:40px;height:52px}
-
-/* IDLE: faint breathing glow on visor */
-@keyframes breath{0%,100%{opacity:.7}50%{opacity:1}}
-.astro.idle .visor-glow{animation:breath 3s ease-in-out infinite}
-
-/* ACTIVE: visor pulses bright, body rocks */
-@keyframes work-rock{0%,100%{transform:rotate(-1deg)}50%{transform:rotate(1deg)}}
-@keyframes visor-active{0%,100%{opacity:.8;filter:brightness(1)}50%{opacity:1;filter:brightness(1.8)}}
-.astro.active svg{animation:work-rock 0.9s ease-in-out infinite;transform-origin:bottom center}
-.astro.active .visor-glow{animation:visor-active 0.7s ease-in-out infinite}
-
-/* ZZZ only when idle and visible */
-.zzz-wrap{position:absolute;top:-18px;left:22px;pointer-events:none}
-.zzz{display:block;font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--cyan3,#80f7ff);opacity:0;position:absolute;animation:zfloat 2.5s ease-in-out infinite}
-.zzz:nth-child(1){left:0;top:0;font-size:9px;animation-delay:0s}
-.zzz:nth-child(2){left:7px;top:-9px;font-size:7px;animation-delay:0.8s}
-.zzz:nth-child(3){left:14px;top:-16px;font-size:5px;animation-delay:1.6s}
-@keyframes zfloat{0%{opacity:0;transform:translateY(0)}30%{opacity:.6}100%{opacity:0;transform:translateY(-12px)}}
-.astro.idle .zzz{opacity:1}
-.astro.active .zzz-wrap{display:none}
-
-/* ─── BRIEFING BOARD ─── */
-.briefing{
-  position:absolute;left:22px;top:98px;
-  width:148px;
-  border-radius:10px;overflow:hidden;
-  background:linear-gradient(160deg,#0d1c35 0%,#080f20 100%);
-  border:1px solid rgba(201,168,76,0.22);
-  box-shadow:0 0 25px rgba(201,168,76,0.08),var(--shadow);
-}
-.brief-hd{
-  background:linear-gradient(90deg,rgba(201,168,76,0.14),rgba(201,168,76,0.04));
-  padding:6px 11px;border-bottom:1px solid rgba(201,168,76,0.14);
-  font-family:'JetBrains Mono',monospace;font-size:7.5px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;
-  display:flex;align-items:center;gap:5px;
-}
-.brief-bd{padding:9px 11px}
-.brief-bar{height:3px;border-radius:2px;margin-bottom:5px}
-.brief-row{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:6.5px;padding:3px 0;border-bottom:1px solid var(--line);color:var(--ink3)}
-.brief-row span{color:var(--gold2)}
-.brief-kpi{display:flex;gap:5px;margin-top:8px}
-.kpi{flex:1;background:rgba(201,168,76,0.05);border:1px solid rgba(201,168,76,0.1);border-radius:5px;padding:5px 4px;text-align:center}
-.kpi-v{font-family:'Orbitron',monospace;font-size:10px;color:var(--gold2);font-weight:700}
-.kpi-l{font-family:'JetBrains Mono',monospace;font-size:5.5px;color:var(--ink3);letter-spacing:1px;margin-top:1px}
-
-/* ─── NOVA CENTER CONSOLE ─── */
-.center-console{
-  position:absolute;
-  left:50%;transform:translateX(-50%);
-  top:90px;
-  width:130px;
-}
-
-/* ─── RIGHT PANEL ─── */
-.right-panel{
-  position:absolute;right:22px;top:98px;
-  width:90px;
-  background:linear-gradient(160deg,#0a1425 0%,#060c18 100%);
-  border:1px solid var(--line2);border-radius:10px;overflow:hidden;
-  box-shadow:var(--shadow);
-}
-.rp-hd{padding:6px 10px;border-bottom:1px solid var(--line);font-family:'JetBrains Mono',monospace;font-size:7px;color:var(--cyan);letter-spacing:2px;text-transform:uppercase}
-.rp-row{padding:5px 10px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:7px;color:var(--ink3)}
-.rp-dot{width:5px;height:5px;border-radius:50%}
-
-/* ─── BOTTOM SECTION ─── */
-.page-body{padding:0 0 20px}
-.divider{height:1px;background:linear-gradient(90deg,transparent,rgba(0,229,255,0.2),transparent);margin:4px 0 20px;opacity:0.6}
-.sec{font-family:'Orbitron',monospace;font-size:8.5px;font-weight:500;color:var(--cyan);letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px}
-.sec::before,.sec::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(0,229,255,0.18))}
-.sec::after{background:linear-gradient(90deg,rgba(0,229,255,0.18),transparent)}
-
-.chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:20px}
-.chip{padding:7px 15px;border-radius:20px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:0.5px;border:1px solid;transition:all 0.2s;white-space:nowrap;background:rgba(8,15,30,0.8)}
-.chip:hover{transform:translateY(-1px)}
-.chip.c1{border-color:rgba(201,168,76,0.4);color:var(--gold2)}
-.chip.c1:hover{background:rgba(201,168,76,0.1);box-shadow:var(--glow-gold)}
-.chip.c2{border-color:rgba(0,229,255,0.35);color:var(--cyan2)}
-.chip.c2:hover{background:rgba(0,229,255,0.08);box-shadow:var(--glow-cyan)}
-.chip.c3{border-color:rgba(155,89,255,0.4);color:var(--purple2)}
-.chip.c3:hover{background:rgba(155,89,255,0.08)}
-.chip.c4{border-color:rgba(0,255,157,0.35);color:var(--green2)}
-.chip.c4:hover{background:rgba(0,255,157,0.08)}
-.chip.active{opacity:0.7;transform:scale(0.97)}
-
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px}
+/* COCKPIT VIEWPORT */
+.cockpit{position:relative;width:100%;background:var(--hull);border:1px solid #1a3050;border-radius:8px;overflow:hidden;margin-bottom:12px}
+.cockpit svg{width:100%;display:block}
 
 /* TERMINAL */
-.terminal{background:#060c18;border:1px solid var(--line2);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
-.term-bar{display:flex;align-items:center;gap:7px;padding:10px 14px;background:linear-gradient(180deg,#0c1528,#08101e);border-bottom:1px solid var(--line)}
-.tdots{display:flex;gap:5px}
-.tdot{width:9px;height:9px;border-radius:50%}
-.term-title{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--ink3);letter-spacing:1px;margin-left:4px}
-.term-body{padding:14px 16px 10px;font-family:'JetBrains Mono',monospace;font-size:11px;min-height:180px;max-height:260px;overflow-y:auto;line-height:1.75}
-.term-body::-webkit-scrollbar{width:3px}
-.term-body::-webkit-scrollbar-thumb{background:var(--line2);border-radius:2px}
-.tln{color:var(--ink2)}
-.tp{color:var(--gold);font-weight:700}
-.to{color:var(--green2);font-size:10px}
-.ti{color:var(--cyan);font-size:10px}
-.tw{color:var(--red);font-size:10px}
-.term-input{display:flex;align-items:center;gap:9px;padding:9px 16px 12px;border-top:1px solid var(--line)}
-.term-input input{flex:1;background:transparent;border:none;outline:none;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink);caret-color:var(--gold2)}
-.term-input input::placeholder{color:var(--ink3)}
-.tcaret{color:var(--gold2);animation:blink 1s step-end infinite;font-size:13px}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.terminal-wrap{background:#020810;border:1px solid #1a3050;border-radius:8px;overflow:hidden;margin-bottom:12px}
+.term-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:#050f1c;border-bottom:1px solid #1a3050}
+.term-bar .tdots{display:flex;gap:5px}.term-bar .tdots i{width:10px;height:10px;border-radius:50%}
+.term-bar .tdots i:nth-child(1){background:#ff5f57}.term-bar .tdots i:nth-child(2){background:#febc2e}.term-bar .tdots i:nth-child(3){background:#28c840}
+.term-bar .tlbl{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.15em;color:var(--faint);text-transform:uppercase;margin-left:4px}
+.term-body{height:220px;overflow-y:auto;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.65;background:#020810}
+.term-body::-webkit-scrollbar{width:6px}.term-body::-webkit-scrollbar-thumb{background:#1a3050;border-radius:3px}
+.ln{display:flex;gap:8px;white-space:pre-wrap;word-break:break-word;animation:fadein .18s ease}
+@keyframes fadein{from{opacity:0}}
+.prompt{color:var(--rs)}.cmd{color:var(--ink)}.ok{color:var(--green)}.warn{color:var(--amber)}.info{color:var(--teal)}.mut{color:var(--dim)}.file{color:var(--violet)}.add{color:var(--green)}.del{color:#ff7a82}.bar{color:var(--red)}.hdr{color:var(--faint)}
+.cur{display:inline-block;width:7px;height:13px;background:var(--red);vertical-align:-2px;animation:cur 1s steps(1) infinite}
+@keyframes cur{50%{opacity:0}}
 
-/* CREW CARDS */
-.crew-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:11px}
-.cc{background:rgba(8,14,26,0.9);border:1px solid var(--line);border-radius:12px;padding:12px;transition:all 0.2s;position:relative;overflow:hidden}
-.cc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--acc,var(--cyan));opacity:0.5}
-.cc:hover{border-color:var(--line2);transform:translateY(-1px)}
-.cc-top{display:flex;align-items:center;gap:9px;margin-bottom:9px}
-.cc-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;background:rgba(255,255,255,0.04);border:1px solid var(--line)}
-.cc-name{font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;color:var(--ink)}
-.cc-role{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--ink3);letter-spacing:1px;text-transform:uppercase;margin-top:1px}
-.cc-status{display:flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:8.5px}
-.cc-dot{width:5px;height:5px;border-radius:50%}
-.cc-task{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--ink3);margin-top:7px;line-height:1.6}
+/* CONTROLS */
+.ctrl{background:var(--panel);border:1px solid #1a3050;border-radius:8px;padding:14px}
+.ctrl-lbl{font-size:7px;letter-spacing:.2em;color:var(--faint);text-transform:uppercase;margin-bottom:10px}
+.ctrl-row{display:flex;gap:8px}
+.ctrl-input{flex:1;background:#030b16;border:1px solid #1a3050;border-radius:6px;color:var(--ink);font-family:'JetBrains Mono',monospace;font-size:13px;padding:12px 14px}
+.ctrl-input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 2px #00e5ff22}
+.ctrl-input::placeholder{color:var(--faint)}
+.run-btn{background:linear-gradient(180deg,var(--red),#9a0f17);border:none;border-radius:6px;padding:0 22px;color:#fff;font-family:'Orbitron',monospace;font-size:10px;font-weight:700;letter-spacing:.1em;cursor:pointer;white-space:nowrap;box-shadow:var(--glow-r)}
+.run-btn:disabled{filter:grayscale(.7);box-shadow:none;cursor:not-allowed}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.chip{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);background:#040c1a;border:1px solid #1a3050;border-radius:6px;padding:7px 12px;cursor:pointer;transition:border-color .15s,color .15s}
+.chip:hover{border-color:var(--teal);color:var(--ink)}
 
-/* RUN BTN */
-.run-btn{display:flex;align-items:center;gap:10px;padding:11px 22px;border-radius:10px;cursor:pointer;border:none;background:linear-gradient(135deg,var(--gold),var(--gold2));font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:#000;letter-spacing:2px;box-shadow:var(--glow-gold);transition:all 0.2s;text-transform:uppercase}
-.run-btn:hover{transform:translateY(-2px);box-shadow:0 0 35px rgba(201,168,76,0.7)}
-.run-btn svg{width:14px;height:14px}
-.action-row{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.footer{text-align:center;margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.15em;color:var(--faint);text-transform:uppercase}
 
-.cockpit{text-align:center;padding:12px;font-family:'JetBrains Mono',monospace;font-size:8.5px;color:var(--ink3);letter-spacing:1px;border-top:1px solid var(--line)}
-.cockpit b{color:var(--gold)}
+/* Zzz */
+.zzz text{opacity:0}
+.sleeping .zz1{animation:zf 2.4s ease-in-out infinite}
+.sleeping .zz2{animation:zf 2.4s ease-in-out infinite .6s}
+.sleeping .zz3{animation:zf 2.4s ease-in-out infinite 1.2s}
+@keyframes zf{0%{opacity:0;transform:translate(0,0)}30%{opacity:.9}100%{opacity:0;transform:translate(5px,-12px)}}
 
-@media(max-width:768px){.row2{grid-template-columns:1fr}.ship-scene{height:420px}.window{width:80px;height:50px}}
+/* Active agent glow */
+.agent-active .screen-main{fill:var(--red)!important}
+.agent-active .visor{fill-opacity:.95!important}
 </style>
 </head>
 <body>
-<!-- HEADER -->
-<header class="hdr">
-  <div class="logo-wrap">
-    <div class="logo-mark">OB</div>
-    <div><div class="brand">ORBIT</div><div class="brand-sub">Mission Deck</div></div>
+<div class="page">
+<div class="topbar">
+  <div>
+    <div class="topbar-logo">&#9651; ORBIT</div>
+    <div class="topbar-title">Mission Command Vessel &middot; Deck A</div>
   </div>
-  <div class="hdr-right">
-    <div class="live-pill"><span class="live-dot"></span>LIVE</div>
-    <div class="crew-pill">6 AGENTS ON STATION</div>
+  <div class="topbar-status">
+    <span><span class="status-dot s-green"></span>ENGINES</span>
+    <span><span class="status-dot s-green"></span>SHIELDS</span>
+    <span><span class="status-dot s-amber"></span>COMMS</span>
+    <span id="clock">00:00:00</span>
+    <span id="pill-status"><span class="status-dot s-green" id="dled"></span><span id="pill">CREW READY</span></span>
   </div>
-</header>
+</div>
 
-<div class="wrap">
-<!-- ════ SPACESHIP INTERIOR ════ -->
-<div class="ship-outer">
+<div class="cockpit"><svg id="scene" viewBox="0 0 900 460" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="floorGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0a1828"/>
+      <stop offset="100%" stop-color="#04080f"/>
+    </linearGradient>
+    <linearGradient id="ceilGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0d2040"/>
+      <stop offset="100%" stop-color="#091428"/>
+    </linearGradient>
+    <radialGradient id="vportGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00e5ff" stop-opacity=".08"/>
+      <stop offset="100%" stop-color="#00e5ff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feComposite in="SourceGraphic" in2="blur" operator="over"/></filter>
+  </defs>
+  
+  <!-- BACKGROUND - ship interior -->
+  <rect width="900" height="460" fill="url(#floorGrad)"/>
+  
+  <!-- CEILING hull -->
+  <rect x="0" y="0" width="900" height="100" fill="url(#ceilGrad)"/>
+  <!-- ceiling panels -->
+  <rect x="0" y="0" width="900" height="5" fill="#1a3a60"/>
+  <rect x="0" y="5" width="900" height="2" fill="#00e5ff" opacity=".3"/>
+  <rect x="0" y="7" width="110" height="88" rx="4" fill="#060e1c" stroke="#1a3050" stroke-width="1"/><rect x="115" y="7" width="110" height="88" rx="4" fill="#060e1c" stroke="#1a3050" stroke-width="1"/><rect x="230" y="7" width="110" height="88" rx="4" fill="#060e1c" stroke="#1a3050" stroke-width="1"/><rect x="345" y="7" width="110" height="88" rx="4" fill="#060e1c" stroke="#1a3050" stroke-width="1"/><rect x="460" y="7" width="110" height="88" rx="4" fill="#060e1c" stroke="#1a3050" stroke-width="1"/><rect x="575" y="7" width="110" height="88" rx="4" fill="#060e1c" stroke="#1a3050" stroke-width="1"/><rect x="690" y="7" width="110" height="88" rx="4" fill="#060e1c" stroke="#1a3050" stroke-width="1"/><rect x="805" y="7" width="110" height="88" rx="4" fill="#060e1c" stroke="#1a3050" stroke-width="1"/>
+  <!-- ceiling lights -->
+  <ellipse cx="75" cy="95" rx="55" ry="30" fill="#00e5ff" opacity=".05"/><line x1="75" y1="7" x2="75" y2="20" stroke="#00e5ff" stroke-width="1.5" opacity=".5"/><rect x="69" y="18" width="12" height="4" rx="2" fill="#00e5ff" opacity=".7"/><ellipse cx="225" cy="95" rx="55" ry="30" fill="#00e5ff" opacity=".05"/><line x1="225" y1="7" x2="225" y2="20" stroke="#00e5ff" stroke-width="1.5" opacity=".5"/><rect x="219" y="18" width="12" height="4" rx="2" fill="#00e5ff" opacity=".7"/><ellipse cx="375" cy="95" rx="55" ry="30" fill="#00e5ff" opacity=".05"/><line x1="375" y1="7" x2="375" y2="20" stroke="#00e5ff" stroke-width="1.5" opacity=".5"/><rect x="369" y="18" width="12" height="4" rx="2" fill="#00e5ff" opacity=".7"/><ellipse cx="525" cy="95" rx="55" ry="30" fill="#00e5ff" opacity=".05"/><line x1="525" y1="7" x2="525" y2="20" stroke="#00e5ff" stroke-width="1.5" opacity=".5"/><rect x="519" y="18" width="12" height="4" rx="2" fill="#00e5ff" opacity=".7"/><ellipse cx="675" cy="95" rx="55" ry="30" fill="#00e5ff" opacity=".05"/><line x1="675" y1="7" x2="675" y2="20" stroke="#00e5ff" stroke-width="1.5" opacity=".5"/><rect x="669" y="18" width="12" height="4" rx="2" fill="#00e5ff" opacity=".7"/><ellipse cx="825" cy="95" rx="55" ry="30" fill="#00e5ff" opacity=".05"/><line x1="825" y1="7" x2="825" y2="20" stroke="#00e5ff" stroke-width="1.5" opacity=".5"/><rect x="819" y="18" width="12" height="4" rx="2" fill="#00e5ff" opacity=".7"/>
+  
+  <!-- SPACE VIEWPORT - big arched window at top -->
+  <rect x="50" y="10" width="800" height="90" rx="8" fill="#020812" stroke="#1a4060" stroke-width="2"/>
+  <rect x="52" y="12" width="796" height="86" rx="7" fill="#020812"/>
+  <!-- Viewport glow -->
+  <rect x="50" y="10" width="800" height="90" rx="8" fill="url(#vportGlow)"/>
+  <!-- Stars inside viewport -->
+  <circle cx="539.3" cy="32.3" r="0.6" fill="#fff" opacity="0.68"/><circle cx="246.8" cy="13.3" r="0.6" fill="#fff" opacity="0.32"/><circle cx="96.0" cy="11.3" r="0.6" fill="#fff" opacity="0.51"/><circle cx="650.3" cy="94.7" r="1.3" fill="#fff" opacity="0.87"/><circle cx="302.8" cy="78.5" r="1.3" fill="#fff" opacity="0.67"/><circle cx="195.1" cy="85.4" r="0.6" fill="#fff" opacity="0.52"/><circle cx="293.6" cy="62.8" r="0.6" fill="#fff" opacity="0.88"/><circle cx="436.3" cy="35.3" r="0.6" fill="#fff" opacity="0.43"/><circle cx="83.0" cy="64.5" r="1.3" fill="#fff" opacity="0.36"/><circle cx="722.0" cy="68.0" r="0.6" fill="#fff" opacity="0.64"/><circle cx="690.1" cy="52.9" r="1.3" fill="#fff" opacity="0.88"/><circle cx="339.6" cy="9.6" r="0.6" fill="#fff" opacity="0.75"/><circle cx="216.0" cy="87.5" r="0.6" fill="#fff" opacity="0.48"/><circle cx="766.9" cy="94.7" r="1.3" fill="#fff" opacity="0.67"/><circle cx="460.4" cy="65.4" r="0.6" fill="#fff" opacity="0.82"/><circle cx="568.5" cy="64.4" r="0.6" fill="#fff" opacity="0.65"/><circle cx="561.2" cy="21.2" r="0.6" fill="#fff" opacity="0.71"/><circle cx="601.0" cy="32.3" r="0.6" fill="#fff" opacity="0.60"/><circle cx="235.9" cy="86.7" r="0.6" fill="#fff" opacity="0.77"/><circle cx="757.9" cy="46.4" r="0.6" fill="#fff" opacity="0.84"/><circle cx="390.7" cy="32.3" r="0.6" fill="#fff" opacity="0.32"/><circle cx="312.2" cy="72.8" r="0.6" fill="#fff" opacity="0.87"/><circle cx="767.6" cy="80.2" r="0.6" fill="#fff" opacity="0.48"/><circle cx="701.2" cy="25.5" r="0.6" fill="#fff" opacity="0.52"/><circle cx="96.2" cy="33.8" r="0.6" fill="#fff" opacity="0.68"/><circle cx="252.8" cy="15.7" r="1.3" fill="#fff" opacity="0.32"/><circle cx="768.7" cy="42.1" r="0.6" fill="#fff" opacity="0.32"/><circle cx="304.9" cy="93.1" r="0.6" fill="#fff" opacity="0.38"/><circle cx="805.9" cy="23.9" r="0.6" fill="#fff" opacity="0.74"/><circle cx="390.3" cy="38.9" r="0.6" fill="#fff" opacity="0.42"/><circle cx="800.3" cy="72.6" r="0.6" fill="#fff" opacity="0.41"/><circle cx="53.2" cy="96.3" r="0.6" fill="#fff" opacity="0.47"/><circle cx="273.0" cy="72.6" r="0.6" fill="#fff" opacity="0.80"/><circle cx="732.5" cy="39.1" r="0.6" fill="#fff" opacity="0.50"/><circle cx="423.9" cy="57.1" r="0.6" fill="#fff" opacity="0.86"/><circle cx="729.7" cy="40.8" r="0.6" fill="#fff" opacity="0.93"/><circle cx="733.3" cy="75.0" r="0.6" fill="#fff" opacity="0.47"/><circle cx="582.6" cy="87.6" r="0.6" fill="#fff" opacity="0.43"/><circle cx="342.3" cy="25.9" r="0.6" fill="#fff" opacity="0.81"/><circle cx="792.6" cy="84.0" r="0.6" fill="#fff" opacity="0.83"/><circle cx="573.8" cy="83.4" r="0.6" fill="#fff" opacity="0.35"/><circle cx="686.6" cy="12.5" r="0.6" fill="#fff" opacity="0.93"/><circle cx="276.6" cy="77.2" r="0.6" fill="#fff" opacity="0.40"/><circle cx="690.8" cy="66.6" r="0.6" fill="#fff" opacity="0.71"/><circle cx="415.2" cy="27.3" r="0.6" fill="#fff" opacity="0.38"/><circle cx="801.1" cy="58.8" r="0.6" fill="#fff" opacity="0.33"/><circle cx="325.3" cy="23.4" r="0.6" fill="#fff" opacity="0.55"/><circle cx="128.4" cy="11.9" r="1.3" fill="#fff" opacity="0.87"/><circle cx="263.5" cy="12.2" r="0.6" fill="#fff" opacity="0.55"/><circle cx="301.2" cy="22.4" r="0.6" fill="#fff" opacity="0.46"/><circle cx="585.7" cy="47.1" r="0.6" fill="#fff" opacity="0.73"/><circle cx="446.8" cy="12.4" r="0.6" fill="#fff" opacity="0.59"/><circle cx="253.2" cy="45.4" r="0.6" fill="#fff" opacity="0.31"/><circle cx="357.3" cy="35.0" r="0.6" fill="#fff" opacity="0.78"/><circle cx="505.0" cy="69.7" r="0.6" fill="#fff" opacity="0.89"/><circle cx="223.8" cy="32.7" r="0.6" fill="#fff" opacity="0.39"/><circle cx="473.9" cy="49.0" r="0.6" fill="#fff" opacity="0.43"/><circle cx="627.3" cy="12.7" r="1.3" fill="#fff" opacity="0.32"/><circle cx="447.5" cy="79.2" r="1.3" fill="#fff" opacity="0.46"/><circle cx="252.0" cy="64.4" r="0.6" fill="#fff" opacity="0.68"/><circle cx="226.6" cy="54.5" r="1.3" fill="#fff" opacity="0.42"/><circle cx="415.0" cy="61.2" r="0.6" fill="#fff" opacity="0.49"/><circle cx="775.3" cy="74.5" r="0.6" fill="#fff" opacity="0.67"/><circle cx="658.2" cy="51.0" r="1.3" fill="#fff" opacity="0.41"/><circle cx="265.2" cy="11.6" r="0.6" fill="#fff" opacity="0.57"/><circle cx="516.1" cy="32.3" r="0.6" fill="#fff" opacity="0.92"/><circle cx="785.2" cy="16.3" r="0.6" fill="#fff" opacity="0.54"/><circle cx="473.3" cy="52.5" r="1.3" fill="#fff" opacity="0.62"/><circle cx="562.4" cy="63.1" r="0.6" fill="#fff" opacity="0.38"/><circle cx="339.6" cy="90.8" r="1.3" fill="#fff" opacity="0.79"/><circle cx="138.7" cy="32.6" r="0.6" fill="#fff" opacity="0.51"/><circle cx="800.0" cy="91.2" r="1.3" fill="#fff" opacity="0.35"/><circle cx="252.6" cy="54.6" r="0.6" fill="#fff" opacity="0.65"/><circle cx="804.8" cy="72.0" r="0.6" fill="#fff" opacity="0.70"/><circle cx="479.0" cy="76.7" r="0.6" fill="#fff" opacity="0.73"/><circle cx="160.1" cy="29.8" r="0.6" fill="#fff" opacity="0.60"/><circle cx="265.2" cy="22.5" r="0.6" fill="#fff" opacity="0.85"/><circle cx="828.5" cy="51.1" r="0.6" fill="#fff" opacity="0.90"/><circle cx="398.0" cy="73.0" r="0.6" fill="#fff" opacity="0.57"/><circle cx="791.1" cy="25.3" r="0.6" fill="#fff" opacity="0.51"/><circle cx="652.7" cy="33.0" r="1.3" fill="#fff" opacity="0.72"/><circle cx="812.5" cy="9.8" r="0.6" fill="#fff" opacity="0.58"/><circle cx="744.4" cy="62.1" r="0.6" fill="#fff" opacity="0.45"/><circle cx="721.1" cy="95.3" r="0.6" fill="#fff" opacity="0.44"/><circle cx="212.7" cy="17.5" r="1.3" fill="#fff" opacity="0.44"/><circle cx="556.1" cy="53.4" r="0.6" fill="#fff" opacity="0.86"/><circle cx="196.6" cy="80.2" r="0.6" fill="#fff" opacity="0.34"/><circle cx="538.2" cy="49.3" r="0.6" fill="#fff" opacity="0.94"/><circle cx="484.0" cy="76.1" r="1.3" fill="#fff" opacity="0.32"/><circle cx="378.8" cy="25.0" r="0.6" fill="#fff" opacity="0.35"/><circle cx="199.5" cy="38.2" r="0.6" fill="#fff" opacity="0.73"/><circle cx="758.7" cy="78.1" r="0.6" fill="#fff" opacity="0.86"/><circle cx="453.6" cy="32.1" r="0.6" fill="#fff" opacity="0.32"/><circle cx="508.2" cy="75.3" r="1.3" fill="#fff" opacity="0.64"/><circle cx="470.3" cy="11.5" r="0.6" fill="#fff" opacity="0.84"/><circle cx="212.4" cy="56.3" r="0.6" fill="#fff" opacity="0.91"/><circle cx="142.1" cy="18.8" r="0.6" fill="#fff" opacity="0.55"/><circle cx="449.7" cy="82.2" r="0.6" fill="#fff" opacity="0.59"/><circle cx="167.3" cy="65.6" r="1.3" fill="#fff" opacity="0.34"/><circle cx="685.6" cy="66.3" r="0.6" fill="#fff" opacity="0.50"/><circle cx="678.8" cy="47.8" r="0.6" fill="#fff" opacity="0.84"/><circle cx="396.5" cy="88.8" r="0.6" fill="#fff" opacity="0.60"/><circle cx="133.3" cy="90.9" r="0.6" fill="#fff" opacity="0.58"/><circle cx="594.3" cy="13.3" r="0.6" fill="#fff" opacity="0.43"/><circle cx="98.4" cy="89.1" r="0.6" fill="#fff" opacity="0.35"/><circle cx="744.4" cy="26.1" r="0.6" fill="#fff" opacity="0.31"/><circle cx="230.2" cy="64.8" r="0.6" fill="#fff" opacity="0.62"/><circle cx="347.9" cy="62.4" r="0.6" fill="#fff" opacity="0.62"/><circle cx="451.3" cy="56.8" r="0.6" fill="#fff" opacity="0.84"/><circle cx="333.7" cy="68.7" r="0.6" fill="#fff" opacity="0.40"/><circle cx="362.2" cy="65.5" r="0.6" fill="#fff" opacity="0.90"/><circle cx="835.0" cy="63.1" r="0.6" fill="#fff" opacity="0.38"/><circle cx="57.0" cy="39.2" r="0.6" fill="#fff" opacity="0.62"/><circle cx="618.0" cy="21.2" r="0.6" fill="#fff" opacity="0.71"/><circle cx="573.5" cy="71.8" r="0.6" fill="#fff" opacity="0.62"/><circle cx="133.7" cy="75.4" r="0.6" fill="#fff" opacity="0.55"/><circle cx="455.1" cy="33.2" r="0.6" fill="#fff" opacity="0.75"/><circle cx="758.2" cy="55.1" r="1.3" fill="#fff" opacity="0.72"/><circle cx="743.7" cy="21.2" r="0.6" fill="#fff" opacity="0.73"/><circle cx="539.0" cy="25.3" r="0.6" fill="#fff" opacity="0.35"/><circle cx="180" cy="45" r="2.5" fill="#00e5ff" opacity=".7"/><circle cx="640" cy="30" r="2" fill="#f0c96b" opacity=".6"/><circle cx="820" cy="60" r="2" fill="#a78bfa" opacity=".7"/><ellipse cx="300" cy="55" rx="80" ry="30" fill="#00e5ff" opacity=".04"/><ellipse cx="680" cy="40" rx="90" ry="35" fill="#a78bfa" opacity=".04"/><circle cx="750" cy="55" r="22" fill="#1a3a6a" opacity=".8"/><circle cx="744" cy="48" r="8" fill="#2a4a8a" opacity=".6"/><ellipse cx="750" cy="55" rx="32" ry="8" fill="none" stroke="#4a6a9a" stroke-width="1.5" opacity=".5"/>
+  <!-- Viewport frame bolts -->
+  <circle cx="98" cy="10" r="3" fill="#1a3050" stroke="#2a4a6a" stroke-width="1"/><circle cx="98" cy="100" r="3" fill="#1a3050" stroke="#2a4a6a" stroke-width="1"/><circle cx="194" cy="10" r="3" fill="#1a3050" stroke="#2a4a6a" stroke-width="1"/><circle cx="194" cy="100" r="3" fill="#1a3050" stroke="#2a4a6a" stroke-width="1"/><circle cx="290" cy="10" r="3" fill="#1a3050" stroke="#2a4a6a" stroke-width="1"/><circle cx="290" cy="100" r="3" fill="#1a3050" stroke="#2a4a6a" stroke-width="1"/><circle cx="386" cy="10" r="3" fill="#1a3050" stroke="#2a4a6a" stroke-width="1"/><circle cx="386" cy="100" r="3" fill="#1a3050" stroke="#2a4a6a" stroke-width="1"/><circle cx="490.00000000000006" cy="10" r="3" fill="#1a3050" stroke="#2a4a6a" stroke-width="1"/><circle cx="490.00000000000006" cy="100" r="3" fill="#1a3050" stroke="#2a4a6a" stroke-width="1"/><circle cx="586" cy="10" r="3" fill="#1a3050" stroke="#2a4a6a" stroke-width="1"/><circle cx="586" cy="100" r="3" fill="#1a3050" stroke="#2a4a6a" stroke-width="1"/><circle cx="682" cy="10" r="3" fill="#1a3050" stroke="#2a4a6a" stroke-width="1"/><circle cx="682" cy="100" r="3" fill="#1a3050" stroke="#2a4a6a" stroke-width="1"/><circle cx="786" cy="10" r="3" fill="#1a3050" stroke="#2a4a6a" stroke-width="1"/><circle cx="786" cy="100" r="3" fill="#1a3050" stroke="#2a4a6a" stroke-width="1"/>
+  <!-- Viewport dividers (frame bars) -->
+  <line x1="350" y1="10" x2="350" y2="100" stroke="#1a4060" stroke-width="2.5" opacity=".6"/>
+  <line x1="550" y1="10" x2="550" y2="100" stroke="#1a4060" stroke-width="2.5" opacity=".6"/>
+  
+  <!-- SIDE WALL PANELS -->
+  <!-- Left wall -->
+  <rect x="0" y="100" width="28" height="360" fill="#060d18" stroke="#1a3050" stroke-width="1"/>
+  <rect x="4" y="120" width="20" height="60" rx="3" fill="#0a1828"/>
+  <rect x="7" y="125" width="14" height="3" rx="1" fill="#36d399" opacity=".7"/><rect x="7" y="133" width="14" height="3" rx="1" fill="#f4b942" opacity=".7"/><rect x="7" y="141" width="14" height="3" rx="1" fill="#00e5ff" opacity=".7"/><rect x="7" y="149" width="14" height="3" rx="1" fill="#a78bfa" opacity=".7"/><rect x="7" y="157" width="14" height="3" rx="1" fill="#fb923c" opacity=".7"/><rect x="7" y="165" width="14" height="3" rx="1" fill="#e8303a" opacity=".7"/>
+  <!-- Right wall -->  
+  <rect x="872" y="100" width="28" height="360" fill="#060d18" stroke="#1a3050" stroke-width="1"/>
+  <rect x="876" y="120" width="20" height="60" rx="3" fill="#0a1828"/>
+  <rect x="879" y="125" width="14" height="3" rx="1" fill="#7dd3fc" opacity=".7"/><rect x="879" y="133" width="14" height="3" rx="1" fill="#f472b6" opacity=".7"/><rect x="879" y="141" width="14" height="3" rx="1" fill="#fb923c" opacity=".7"/><rect x="879" y="149" width="14" height="3" rx="1" fill="#a78bfa" opacity=".7"/><rect x="879" y="157" width="14" height="3" rx="1" fill="#00e5ff" opacity=".7"/><rect x="879" y="165" width="14" height="3" rx="1" fill="#36d399" opacity=".7"/>
+  
+  <!-- FLOOR GRID -->
+  <line x1="28" y1="395" x2="872" y2="395" stroke="#1a3050" stroke-width=".5" opacity="0.8"/><line x1="28" y1="403" x2="872" y2="403" stroke="#1a3050" stroke-width=".5" opacity="0.7"/><line x1="28" y1="411" x2="872" y2="411" stroke="#1a3050" stroke-width=".5" opacity="0.6"/><line x1="28" y1="419" x2="872" y2="419" stroke="#1a3050" stroke-width=".5" opacity="0.5"/><line x1="28" y1="427" x2="872" y2="427" stroke="#1a3050" stroke-width=".5" opacity="0.4"/><line x1="28" y1="435" x2="872" y2="435" stroke="#1a3050" stroke-width=".5" opacity="0.3"/><line x1="28" y1="443" x2="872" y2="443" stroke="#1a3050" stroke-width=".5" opacity="0.2"/><line x1="28" y1="451" x2="872" y2="451" stroke="#1a3050" stroke-width=".5" opacity="0.1"/>
+  <line x1="50" y1="395" x2="50" y2="460" stroke="#1a3050" stroke-width=".5" opacity=".4"/><line x1="140" y1="395" x2="140" y2="460" stroke="#1a3050" stroke-width=".5" opacity=".4"/><line x1="230" y1="395" x2="230" y2="460" stroke="#1a3050" stroke-width=".5" opacity=".4"/><line x1="320" y1="395" x2="320" y2="460" stroke="#1a3050" stroke-width=".5" opacity=".4"/><line x1="410" y1="395" x2="410" y2="460" stroke="#1a3050" stroke-width=".5" opacity=".4"/><line x1="500" y1="395" x2="500" y2="460" stroke="#1a3050" stroke-width=".5" opacity=".4"/><line x1="590" y1="395" x2="590" y2="460" stroke="#1a3050" stroke-width=".5" opacity=".4"/><line x1="680" y1="395" x2="680" y2="460" stroke="#1a3050" stroke-width=".5" opacity=".4"/><line x1="770" y1="395" x2="770" y2="460" stroke="#1a3050" stroke-width=".5" opacity=".4"/><line x1="860" y1="395" x2="860" y2="460" stroke="#1a3050" stroke-width=".5" opacity=".4"/>
+  <!-- Floor edge accent -->
+  <rect x="28" y="393" width="844" height="2" fill="#00e5ff" opacity=".15"/>
+  
+  <!-- DIVIDER between ceiling and stations -->
+  <rect x="28" y="105" width="844" height="3" fill="#1a3050"/>
+  <rect x="28" y="105" width="844" height="1" fill="#00e5ff" opacity=".3"/>
+  
+  <!-- STATUS STRIP below viewport -->
+  <rect x="28" y="108" width="844" height="32" fill="#050d1c"/>
+  <text x="50" y="128" fill="#00e5ff" font-family="'JetBrains Mono'" font-size="10" opacity=".7">SYS: NOMINAL</text>
+  <text x="220" y="128" fill="#36d399" font-family="'JetBrains Mono'" font-size="10" opacity=".7">ORBIT: STABLE</text>
+  <text x="400" y="128" fill="#f0c96b" font-family="'JetBrains Mono'" font-size="10" opacity=".7">CREW: 6 ACTIVE</text>
+  <text x="600" y="128" fill="#a78bfa" font-family="'JetBrains Mono'" font-size="10" opacity=".7">AI: ONLINE</text>
+  <rect x="28" y="140" width="844" height="1" fill="#1a3050"/>
+  
+  <!-- STATIONS -->
+  
+    <g class="station" id="station-nova">
+      <!-- console base -->
+      <rect x="30" y="215.5" width="220" height="49.5" rx="4" fill="#0a1220" stroke="#f0c96b44" stroke-width="1"/>
+      <!-- console top surface (angled panel) -->
+      <polygon points="34,188 246,188 250,215.5 30,215.5" fill="#0d1e30" stroke="#f0c96b55" stroke-width="1"/>
+      <!-- main screen -->
+      <rect x="38" y="159" width="204" height="29" rx="3" fill="#020810" stroke="#f0c96b66" stroke-width="1.5" id="scr-nova"/>
+      <!-- screen inner glow base -->
+      <rect x="41" y="162" width="198" height="23" rx="2" fill="#0a0f18" id="scr-nova-inner"/>
+      <!-- screen scanlines -->
+      <line x1="41" y1="162" x2="239" y2="162" stroke="#f0c96b18" stroke-width=".5"/><line x1="41" y1="168" x2="239" y2="168" stroke="#f0c96b18" stroke-width=".5"/><line x1="41" y1="174" x2="239" y2="174" stroke="#f0c96b18" stroke-width=".5"/><line x1="41" y1="180" x2="239" y2="180" stroke="#f0c96b18" stroke-width=".5"/>
+      <!-- keyboard strip -->
+      <rect x="40" y="219.5" width="200" height="8" rx="2" fill="#060e1c"/>
+      <rect x="42" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="70" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="98" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="126" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="154" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="182" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="210" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/>
+      <!-- LED row -->
+      <circle cx="40" cy="231.5" r="2.5" fill="#f0c96b" opacity=".8" class="led-nova"/>
+      <circle cx="48" cy="231.5" r="2.5" fill="#36d399" opacity=".7"/>
+      <circle cx="56" cy="231.5" r="2.5" fill="#f0c96b" opacity=".5"/>
+      <!-- mug -->
+      <rect x="232" y="190.2" width="12" height="10" rx="2" fill="#0f1e30" stroke="#f0c96b44" stroke-width="1"/>
+      <rect x="243" y="193.2" width="4" height="5" rx="2" fill="none" stroke="#f0c96b66" stroke-width="1"/>
+      <!-- name tag -->
+      <text x="140" y="281" text-anchor="middle" fill="#f0c96b" font-family="'Press Start 2P'" font-size="6.5" opacity=".9">NOVA</text>
+      <text x="140" y="292" text-anchor="middle" fill="#f0c96b99" font-family="'JetBrains Mono'" font-size="8">Director</text>
+      <!-- astronaut centered behind console top -->
+      <g class="astro-nova" transform="translate(140, 183.6)"><g class="astro-body">
+    <!-- shadow -->
+    <ellipse cx="0" cy="8" rx="10" ry="3.5" fill="#000" opacity=".4"/>
+    <!-- torso/suit -->
+    <rect x="-7" y="-16" width="14" height="14" rx="5" fill="#dce8f0"/>
+    <!-- chest stripe -->
+    <rect x="-7" y="-9" width="14" height="4" fill="#f0c96b" opacity=".85"/>
+    <!-- chest badge -->
+    <rect x="-3" y="-10" width="6" height="4" rx="1" fill="#f0c96b"/>
+    <!-- arms -->
+    <rect x="-11" y="-14" width="4" height="9" rx="2" fill="#c8d8e8"/>
+    <rect x="7" y="-14" width="4" height="9" rx="2" fill="#c8d8e8"/>
+    <!-- gloves -->
+    <ellipse cx="-9" cy="-5" rx="3" ry="2.5" fill="#f0c96b" opacity=".8"/>
+    <ellipse cx="9" cy="-5" rx="3" ry="2.5" fill="#f0c96b" opacity=".8"/>
+    <!-- helmet -->
+    <circle cx="0" cy="-22" r="9" fill="#e8f2fa"/>
+    <!-- visor -->
+    <path d="M-6 -24 a6 6 0 0 1 12 0 a6 6 0 0 1 -12 0Z" fill="#08101e" class="visor"/>
+    <!-- visor shine -->
+    <ellipse cx="-2" cy="-25" rx="2.5" ry="1.8" fill="#f0c96b" opacity=".7" class="visor-shine"/>
+    <!-- visor inner glow (shows when active) -->
+    <path d="M-5 -24 a5 5 0 0 1 10 0 a5 5 0 0 1 -10 0Z" fill="#f0c96b" opacity="0" class="visor-glow"/>
+    <!-- antenna -->
+    <line x1="0" y1="-31" x2="0" y2="-28" stroke="#f0c96b" stroke-width="1.5"/>
+    <circle cx="0" cy="-33" r="2.5" fill="#f0c96b" opacity=".9" class="antenna-dot"/>
+    <!-- zzz group -->
+    <g class="zzz">
+      <text x="7" y="-30" class="zz1" fill="#bfeede" font-family="'Press Start 2P'" font-size="5">z</text>
+      <text x="10" y="-34" class="zz2" fill="#bfeede" font-family="'Press Start 2P'" font-size="6">z</text>
+      <text x="13" y="-38" class="zz3" fill="#bfeede" font-family="'Press Start 2P'" font-size="7">z</text>
+    </g>
+  </g></g>
+    </g>
+    <g class="station" id="station-astra">
+      <!-- console base -->
+      <rect x="340" y="215.5" width="220" height="49.5" rx="4" fill="#0a1220" stroke="#00e5ff44" stroke-width="1"/>
+      <!-- console top surface (angled panel) -->
+      <polygon points="344,188 556,188 560,215.5 340,215.5" fill="#0d1e30" stroke="#00e5ff55" stroke-width="1"/>
+      <!-- main screen -->
+      <rect x="348" y="159" width="204" height="29" rx="3" fill="#020810" stroke="#00e5ff66" stroke-width="1.5" id="scr-astra"/>
+      <!-- screen inner glow base -->
+      <rect x="351" y="162" width="198" height="23" rx="2" fill="#0a0f18" id="scr-astra-inner"/>
+      <!-- screen scanlines -->
+      <line x1="351" y1="162" x2="549" y2="162" stroke="#00e5ff18" stroke-width=".5"/><line x1="351" y1="168" x2="549" y2="168" stroke="#00e5ff18" stroke-width=".5"/><line x1="351" y1="174" x2="549" y2="174" stroke="#00e5ff18" stroke-width=".5"/><line x1="351" y1="180" x2="549" y2="180" stroke="#00e5ff18" stroke-width=".5"/>
+      <!-- keyboard strip -->
+      <rect x="350" y="219.5" width="200" height="8" rx="2" fill="#060e1c"/>
+      <rect x="352" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="380" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="408" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="436" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="464" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="492" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="520" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/>
+      <!-- LED row -->
+      <circle cx="350" cy="231.5" r="2.5" fill="#00e5ff" opacity=".8" class="led-astra"/>
+      <circle cx="358" cy="231.5" r="2.5" fill="#36d399" opacity=".7"/>
+      <circle cx="366" cy="231.5" r="2.5" fill="#00e5ff" opacity=".5"/>
+      <!-- mug -->
+      <rect x="542" y="190.2" width="12" height="10" rx="2" fill="#0f1e30" stroke="#00e5ff44" stroke-width="1"/>
+      <rect x="553" y="193.2" width="4" height="5" rx="2" fill="none" stroke="#00e5ff66" stroke-width="1"/>
+      <!-- name tag -->
+      <text x="450" y="281" text-anchor="middle" fill="#00e5ff" font-family="'Press Start 2P'" font-size="6.5" opacity=".9">ASTRA</text>
+      <text x="450" y="292" text-anchor="middle" fill="#00e5ff99" font-family="'JetBrains Mono'" font-size="8">Lead Gen</text>
+      <!-- astronaut centered behind console top -->
+      <g class="astro-astra" transform="translate(450, 183.6)"><g class="astro-body">
+    <!-- shadow -->
+    <ellipse cx="0" cy="8" rx="10" ry="3.5" fill="#000" opacity=".4"/>
+    <!-- torso/suit -->
+    <rect x="-7" y="-16" width="14" height="14" rx="5" fill="#dce8f0"/>
+    <!-- chest stripe -->
+    <rect x="-7" y="-9" width="14" height="4" fill="#00e5ff" opacity=".85"/>
+    <!-- chest badge -->
+    <rect x="-3" y="-10" width="6" height="4" rx="1" fill="#00e5ff"/>
+    <!-- arms -->
+    <rect x="-11" y="-14" width="4" height="9" rx="2" fill="#c8d8e8"/>
+    <rect x="7" y="-14" width="4" height="9" rx="2" fill="#c8d8e8"/>
+    <!-- gloves -->
+    <ellipse cx="-9" cy="-5" rx="3" ry="2.5" fill="#00e5ff" opacity=".8"/>
+    <ellipse cx="9" cy="-5" rx="3" ry="2.5" fill="#00e5ff" opacity=".8"/>
+    <!-- helmet -->
+    <circle cx="0" cy="-22" r="9" fill="#e8f2fa"/>
+    <!-- visor -->
+    <path d="M-6 -24 a6 6 0 0 1 12 0 a6 6 0 0 1 -12 0Z" fill="#08101e" class="visor"/>
+    <!-- visor shine -->
+    <ellipse cx="-2" cy="-25" rx="2.5" ry="1.8" fill="#00e5ff" opacity=".7" class="visor-shine"/>
+    <!-- visor inner glow (shows when active) -->
+    <path d="M-5 -24 a5 5 0 0 1 10 0 a5 5 0 0 1 -10 0Z" fill="#00e5ff" opacity="0" class="visor-glow"/>
+    <!-- antenna -->
+    <line x1="0" y1="-31" x2="0" y2="-28" stroke="#00e5ff" stroke-width="1.5"/>
+    <circle cx="0" cy="-33" r="2.5" fill="#00e5ff" opacity=".9" class="antenna-dot"/>
+    <!-- zzz group -->
+    <g class="zzz">
+      <text x="7" y="-30" class="zz1" fill="#bfeede" font-family="'Press Start 2P'" font-size="5">z</text>
+      <text x="10" y="-34" class="zz2" fill="#bfeede" font-family="'Press Start 2P'" font-size="6">z</text>
+      <text x="13" y="-38" class="zz3" fill="#bfeede" font-family="'Press Start 2P'" font-size="7">z</text>
+    </g>
+  </g></g>
+    </g>
+    <g class="station" id="station-orion">
+      <!-- console base -->
+      <rect x="650" y="215.5" width="220" height="49.5" rx="4" fill="#0a1220" stroke="#a78bfa44" stroke-width="1"/>
+      <!-- console top surface (angled panel) -->
+      <polygon points="654,188 866,188 870,215.5 650,215.5" fill="#0d1e30" stroke="#a78bfa55" stroke-width="1"/>
+      <!-- main screen -->
+      <rect x="658" y="159" width="204" height="29" rx="3" fill="#020810" stroke="#a78bfa66" stroke-width="1.5" id="scr-orion"/>
+      <!-- screen inner glow base -->
+      <rect x="661" y="162" width="198" height="23" rx="2" fill="#0a0f18" id="scr-orion-inner"/>
+      <!-- screen scanlines -->
+      <line x1="661" y1="162" x2="859" y2="162" stroke="#a78bfa18" stroke-width=".5"/><line x1="661" y1="168" x2="859" y2="168" stroke="#a78bfa18" stroke-width=".5"/><line x1="661" y1="174" x2="859" y2="174" stroke="#a78bfa18" stroke-width=".5"/><line x1="661" y1="180" x2="859" y2="180" stroke="#a78bfa18" stroke-width=".5"/>
+      <!-- keyboard strip -->
+      <rect x="660" y="219.5" width="200" height="8" rx="2" fill="#060e1c"/>
+      <rect x="662" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="690" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="718" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="746" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="774" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="802" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="830" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/>
+      <!-- LED row -->
+      <circle cx="660" cy="231.5" r="2.5" fill="#a78bfa" opacity=".8" class="led-orion"/>
+      <circle cx="668" cy="231.5" r="2.5" fill="#36d399" opacity=".7"/>
+      <circle cx="676" cy="231.5" r="2.5" fill="#a78bfa" opacity=".5"/>
+      <!-- mug -->
+      <rect x="852" y="190.2" width="12" height="10" rx="2" fill="#0f1e30" stroke="#a78bfa44" stroke-width="1"/>
+      <rect x="863" y="193.2" width="4" height="5" rx="2" fill="none" stroke="#a78bfa66" stroke-width="1"/>
+      <!-- name tag -->
+      <text x="760" y="281" text-anchor="middle" fill="#a78bfa" font-family="'Press Start 2P'" font-size="6.5" opacity=".9">ORION</text>
+      <text x="760" y="292" text-anchor="middle" fill="#a78bfa99" font-family="'JetBrains Mono'" font-size="8">Web Dev</text>
+      <!-- astronaut centered behind console top -->
+      <g class="astro-orion" transform="translate(760, 183.6)"><g class="astro-body">
+    <!-- shadow -->
+    <ellipse cx="0" cy="8" rx="10" ry="3.5" fill="#000" opacity=".4"/>
+    <!-- torso/suit -->
+    <rect x="-7" y="-16" width="14" height="14" rx="5" fill="#dce8f0"/>
+    <!-- chest stripe -->
+    <rect x="-7" y="-9" width="14" height="4" fill="#a78bfa" opacity=".85"/>
+    <!-- chest badge -->
+    <rect x="-3" y="-10" width="6" height="4" rx="1" fill="#a78bfa"/>
+    <!-- arms -->
+    <rect x="-11" y="-14" width="4" height="9" rx="2" fill="#c8d8e8"/>
+    <rect x="7" y="-14" width="4" height="9" rx="2" fill="#c8d8e8"/>
+    <!-- gloves -->
+    <ellipse cx="-9" cy="-5" rx="3" ry="2.5" fill="#a78bfa" opacity=".8"/>
+    <ellipse cx="9" cy="-5" rx="3" ry="2.5" fill="#a78bfa" opacity=".8"/>
+    <!-- helmet -->
+    <circle cx="0" cy="-22" r="9" fill="#e8f2fa"/>
+    <!-- visor -->
+    <path d="M-6 -24 a6 6 0 0 1 12 0 a6 6 0 0 1 -12 0Z" fill="#08101e" class="visor"/>
+    <!-- visor shine -->
+    <ellipse cx="-2" cy="-25" rx="2.5" ry="1.8" fill="#a78bfa" opacity=".7" class="visor-shine"/>
+    <!-- visor inner glow (shows when active) -->
+    <path d="M-5 -24 a5 5 0 0 1 10 0 a5 5 0 0 1 -10 0Z" fill="#a78bfa" opacity="0" class="visor-glow"/>
+    <!-- antenna -->
+    <line x1="0" y1="-31" x2="0" y2="-28" stroke="#a78bfa" stroke-width="1.5"/>
+    <circle cx="0" cy="-33" r="2.5" fill="#a78bfa" opacity=".9" class="antenna-dot"/>
+    <!-- zzz group -->
+    <g class="zzz">
+      <text x="7" y="-30" class="zz1" fill="#bfeede" font-family="'Press Start 2P'" font-size="5">z</text>
+      <text x="10" y="-34" class="zz2" fill="#bfeede" font-family="'Press Start 2P'" font-size="6">z</text>
+      <text x="13" y="-38" class="zz3" fill="#bfeede" font-family="'Press Start 2P'" font-size="7">z</text>
+    </g>
+  </g></g>
+    </g>
+    <g class="station" id="station-rex">
+      <!-- console base -->
+      <rect x="30" y="340.5" width="220" height="49.5" rx="4" fill="#0a1220" stroke="#fb923c44" stroke-width="1"/>
+      <!-- console top surface (angled panel) -->
+      <polygon points="34,313 246,313 250,340.5 30,340.5" fill="#0d1e30" stroke="#fb923c55" stroke-width="1"/>
+      <!-- main screen -->
+      <rect x="38" y="284" width="204" height="29" rx="3" fill="#020810" stroke="#fb923c66" stroke-width="1.5" id="scr-rex"/>
+      <!-- screen inner glow base -->
+      <rect x="41" y="287" width="198" height="23" rx="2" fill="#0a0f18" id="scr-rex-inner"/>
+      <!-- screen scanlines -->
+      <line x1="41" y1="287" x2="239" y2="287" stroke="#fb923c18" stroke-width=".5"/><line x1="41" y1="293" x2="239" y2="293" stroke="#fb923c18" stroke-width=".5"/><line x1="41" y1="299" x2="239" y2="299" stroke="#fb923c18" stroke-width=".5"/><line x1="41" y1="305" x2="239" y2="305" stroke="#fb923c18" stroke-width=".5"/>
+      <!-- keyboard strip -->
+      <rect x="40" y="344.5" width="200" height="8" rx="2" fill="#060e1c"/>
+      <rect x="42" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="70" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="98" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="126" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="154" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="182" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="210" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/>
+      <!-- LED row -->
+      <circle cx="40" cy="356.5" r="2.5" fill="#fb923c" opacity=".8" class="led-rex"/>
+      <circle cx="48" cy="356.5" r="2.5" fill="#36d399" opacity=".7"/>
+      <circle cx="56" cy="356.5" r="2.5" fill="#fb923c" opacity=".5"/>
+      <!-- mug -->
+      <rect x="232" y="315.2" width="12" height="10" rx="2" fill="#0f1e30" stroke="#fb923c44" stroke-width="1"/>
+      <rect x="243" y="318.2" width="4" height="5" rx="2" fill="none" stroke="#fb923c66" stroke-width="1"/>
+      <!-- name tag -->
+      <text x="140" y="406" text-anchor="middle" fill="#fb923c" font-family="'Press Start 2P'" font-size="6.5" opacity=".9">REX</text>
+      <text x="140" y="417" text-anchor="middle" fill="#fb923c99" font-family="'JetBrains Mono'" font-size="8">Sales</text>
+      <!-- astronaut centered behind console top -->
+      <g class="astro-rex" transform="translate(140, 308.6)"><g class="astro-body">
+    <!-- shadow -->
+    <ellipse cx="0" cy="8" rx="10" ry="3.5" fill="#000" opacity=".4"/>
+    <!-- torso/suit -->
+    <rect x="-7" y="-16" width="14" height="14" rx="5" fill="#dce8f0"/>
+    <!-- chest stripe -->
+    <rect x="-7" y="-9" width="14" height="4" fill="#fb923c" opacity=".85"/>
+    <!-- chest badge -->
+    <rect x="-3" y="-10" width="6" height="4" rx="1" fill="#fb923c"/>
+    <!-- arms -->
+    <rect x="-11" y="-14" width="4" height="9" rx="2" fill="#c8d8e8"/>
+    <rect x="7" y="-14" width="4" height="9" rx="2" fill="#c8d8e8"/>
+    <!-- gloves -->
+    <ellipse cx="-9" cy="-5" rx="3" ry="2.5" fill="#fb923c" opacity=".8"/>
+    <ellipse cx="9" cy="-5" rx="3" ry="2.5" fill="#fb923c" opacity=".8"/>
+    <!-- helmet -->
+    <circle cx="0" cy="-22" r="9" fill="#e8f2fa"/>
+    <!-- visor -->
+    <path d="M-6 -24 a6 6 0 0 1 12 0 a6 6 0 0 1 -12 0Z" fill="#08101e" class="visor"/>
+    <!-- visor shine -->
+    <ellipse cx="-2" cy="-25" rx="2.5" ry="1.8" fill="#fb923c" opacity=".7" class="visor-shine"/>
+    <!-- visor inner glow (shows when active) -->
+    <path d="M-5 -24 a5 5 0 0 1 10 0 a5 5 0 0 1 -10 0Z" fill="#fb923c" opacity="0" class="visor-glow"/>
+    <!-- antenna -->
+    <line x1="0" y1="-31" x2="0" y2="-28" stroke="#fb923c" stroke-width="1.5"/>
+    <circle cx="0" cy="-33" r="2.5" fill="#fb923c" opacity=".9" class="antenna-dot"/>
+    <!-- zzz group -->
+    <g class="zzz">
+      <text x="7" y="-30" class="zz1" fill="#bfeede" font-family="'Press Start 2P'" font-size="5">z</text>
+      <text x="10" y="-34" class="zz2" fill="#bfeede" font-family="'Press Start 2P'" font-size="6">z</text>
+      <text x="13" y="-38" class="zz3" fill="#bfeede" font-family="'Press Start 2P'" font-size="7">z</text>
+    </g>
+  </g></g>
+    </g>
+    <g class="station" id="station-luna">
+      <!-- console base -->
+      <rect x="340" y="340.5" width="220" height="49.5" rx="4" fill="#0a1220" stroke="#f472b644" stroke-width="1"/>
+      <!-- console top surface (angled panel) -->
+      <polygon points="344,313 556,313 560,340.5 340,340.5" fill="#0d1e30" stroke="#f472b655" stroke-width="1"/>
+      <!-- main screen -->
+      <rect x="348" y="284" width="204" height="29" rx="3" fill="#020810" stroke="#f472b666" stroke-width="1.5" id="scr-luna"/>
+      <!-- screen inner glow base -->
+      <rect x="351" y="287" width="198" height="23" rx="2" fill="#0a0f18" id="scr-luna-inner"/>
+      <!-- screen scanlines -->
+      <line x1="351" y1="287" x2="549" y2="287" stroke="#f472b618" stroke-width=".5"/><line x1="351" y1="293" x2="549" y2="293" stroke="#f472b618" stroke-width=".5"/><line x1="351" y1="299" x2="549" y2="299" stroke="#f472b618" stroke-width=".5"/><line x1="351" y1="305" x2="549" y2="305" stroke="#f472b618" stroke-width=".5"/>
+      <!-- keyboard strip -->
+      <rect x="350" y="344.5" width="200" height="8" rx="2" fill="#060e1c"/>
+      <rect x="352" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="380" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="408" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="436" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="464" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="492" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="520" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/>
+      <!-- LED row -->
+      <circle cx="350" cy="356.5" r="2.5" fill="#f472b6" opacity=".8" class="led-luna"/>
+      <circle cx="358" cy="356.5" r="2.5" fill="#36d399" opacity=".7"/>
+      <circle cx="366" cy="356.5" r="2.5" fill="#f472b6" opacity=".5"/>
+      <!-- mug -->
+      <rect x="542" y="315.2" width="12" height="10" rx="2" fill="#0f1e30" stroke="#f472b644" stroke-width="1"/>
+      <rect x="553" y="318.2" width="4" height="5" rx="2" fill="none" stroke="#f472b666" stroke-width="1"/>
+      <!-- name tag -->
+      <text x="450" y="406" text-anchor="middle" fill="#f472b6" font-family="'Press Start 2P'" font-size="6.5" opacity=".9">LUNA</text>
+      <text x="450" y="417" text-anchor="middle" fill="#f472b699" font-family="'JetBrains Mono'" font-size="8">App Dev</text>
+      <!-- astronaut centered behind console top -->
+      <g class="astro-luna" transform="translate(450, 308.6)"><g class="astro-body">
+    <!-- shadow -->
+    <ellipse cx="0" cy="8" rx="10" ry="3.5" fill="#000" opacity=".4"/>
+    <!-- torso/suit -->
+    <rect x="-7" y="-16" width="14" height="14" rx="5" fill="#dce8f0"/>
+    <!-- chest stripe -->
+    <rect x="-7" y="-9" width="14" height="4" fill="#f472b6" opacity=".85"/>
+    <!-- chest badge -->
+    <rect x="-3" y="-10" width="6" height="4" rx="1" fill="#f472b6"/>
+    <!-- arms -->
+    <rect x="-11" y="-14" width="4" height="9" rx="2" fill="#c8d8e8"/>
+    <rect x="7" y="-14" width="4" height="9" rx="2" fill="#c8d8e8"/>
+    <!-- gloves -->
+    <ellipse cx="-9" cy="-5" rx="3" ry="2.5" fill="#f472b6" opacity=".8"/>
+    <ellipse cx="9" cy="-5" rx="3" ry="2.5" fill="#f472b6" opacity=".8"/>
+    <!-- helmet -->
+    <circle cx="0" cy="-22" r="9" fill="#e8f2fa"/>
+    <!-- visor -->
+    <path d="M-6 -24 a6 6 0 0 1 12 0 a6 6 0 0 1 -12 0Z" fill="#08101e" class="visor"/>
+    <!-- visor shine -->
+    <ellipse cx="-2" cy="-25" rx="2.5" ry="1.8" fill="#f472b6" opacity=".7" class="visor-shine"/>
+    <!-- visor inner glow (shows when active) -->
+    <path d="M-5 -24 a5 5 0 0 1 10 0 a5 5 0 0 1 -10 0Z" fill="#f472b6" opacity="0" class="visor-glow"/>
+    <!-- antenna -->
+    <line x1="0" y1="-31" x2="0" y2="-28" stroke="#f472b6" stroke-width="1.5"/>
+    <circle cx="0" cy="-33" r="2.5" fill="#f472b6" opacity=".9" class="antenna-dot"/>
+    <!-- zzz group -->
+    <g class="zzz">
+      <text x="7" y="-30" class="zz1" fill="#bfeede" font-family="'Press Start 2P'" font-size="5">z</text>
+      <text x="10" y="-34" class="zz2" fill="#bfeede" font-family="'Press Start 2P'" font-size="6">z</text>
+      <text x="13" y="-38" class="zz3" fill="#bfeede" font-family="'Press Start 2P'" font-size="7">z</text>
+    </g>
+  </g></g>
+    </g>
+    <g class="station" id="station-vera">
+      <!-- console base -->
+      <rect x="650" y="340.5" width="220" height="49.5" rx="4" fill="#0a1220" stroke="#7dd3fc44" stroke-width="1"/>
+      <!-- console top surface (angled panel) -->
+      <polygon points="654,313 866,313 870,340.5 650,340.5" fill="#0d1e30" stroke="#7dd3fc55" stroke-width="1"/>
+      <!-- main screen -->
+      <rect x="658" y="284" width="204" height="29" rx="3" fill="#020810" stroke="#7dd3fc66" stroke-width="1.5" id="scr-vera"/>
+      <!-- screen inner glow base -->
+      <rect x="661" y="287" width="198" height="23" rx="2" fill="#0a0f18" id="scr-vera-inner"/>
+      <!-- screen scanlines -->
+      <line x1="661" y1="287" x2="859" y2="287" stroke="#7dd3fc18" stroke-width=".5"/><line x1="661" y1="293" x2="859" y2="293" stroke="#7dd3fc18" stroke-width=".5"/><line x1="661" y1="299" x2="859" y2="299" stroke="#7dd3fc18" stroke-width=".5"/><line x1="661" y1="305" x2="859" y2="305" stroke="#7dd3fc18" stroke-width=".5"/>
+      <!-- keyboard strip -->
+      <rect x="660" y="344.5" width="200" height="8" rx="2" fill="#060e1c"/>
+      <rect x="662" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="690" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="718" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="746" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="774" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="802" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="830" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/>
+      <!-- LED row -->
+      <circle cx="660" cy="356.5" r="2.5" fill="#7dd3fc" opacity=".8" class="led-vera"/>
+      <circle cx="668" cy="356.5" r="2.5" fill="#36d399" opacity=".7"/>
+      <circle cx="676" cy="356.5" r="2.5" fill="#7dd3fc" opacity=".5"/>
+      <!-- mug -->
+      <rect x="852" y="315.2" width="12" height="10" rx="2" fill="#0f1e30" stroke="#7dd3fc44" stroke-width="1"/>
+      <rect x="863" y="318.2" width="4" height="5" rx="2" fill="none" stroke="#7dd3fc66" stroke-width="1"/>
+      <!-- name tag -->
+      <text x="760" y="406" text-anchor="middle" fill="#7dd3fc" font-family="'Press Start 2P'" font-size="6.5" opacity=".9">VERA</text>
+      <text x="760" y="417" text-anchor="middle" fill="#7dd3fc99" font-family="'JetBrains Mono'" font-size="8">Ops</text>
+      <!-- astronaut centered behind console top -->
+      <g class="astro-vera" transform="translate(760, 308.6)"><g class="astro-body">
+    <!-- shadow -->
+    <ellipse cx="0" cy="8" rx="10" ry="3.5" fill="#000" opacity=".4"/>
+    <!-- torso/suit -->
+    <rect x="-7" y="-16" width="14" height="14" rx="5" fill="#dce8f0"/>
+    <!-- chest stripe -->
+    <rect x="-7" y="-9" width="14" height="4" fill="#7dd3fc" opacity=".85"/>
+    <!-- chest badge -->
+    <rect x="-3" y="-10" width="6" height="4" rx="1" fill="#7dd3fc"/>
+    <!-- arms -->
+    <rect x="-11" y="-14" width="4" height="9" rx="2" fill="#c8d8e8"/>
+    <rect x="7" y="-14" width="4" height="9" rx="2" fill="#c8d8e8"/>
+    <!-- gloves -->
+    <ellipse cx="-9" cy="-5" rx="3" ry="2.5" fill="#7dd3fc" opacity=".8"/>
+    <ellipse cx="9" cy="-5" rx="3" ry="2.5" fill="#7dd3fc" opacity=".8"/>
+    <!-- helmet -->
+    <circle cx="0" cy="-22" r="9" fill="#e8f2fa"/>
+    <!-- visor -->
+    <path d="M-6 -24 a6 6 0 0 1 12 0 a6 6 0 0 1 -12 0Z" fill="#08101e" class="visor"/>
+    <!-- visor shine -->
+    <ellipse cx="-2" cy="-25" rx="2.5" ry="1.8" fill="#7dd3fc" opacity=".7" class="visor-shine"/>
+    <!-- visor inner glow (shows when active) -->
+    <path d="M-5 -24 a5 5 0 0 1 10 0 a5 5 0 0 1 -10 0Z" fill="#7dd3fc" opacity="0" class="visor-glow"/>
+    <!-- antenna -->
+    <line x1="0" y1="-31" x2="0" y2="-28" stroke="#7dd3fc" stroke-width="1.5"/>
+    <circle cx="0" cy="-33" r="2.5" fill="#7dd3fc" opacity=".9" class="antenna-dot"/>
+    <!-- zzz group -->
+    <g class="zzz">
+      <text x="7" y="-30" class="zz1" fill="#bfeede" font-family="'Press Start 2P'" font-size="5">z</text>
+      <text x="10" y="-34" class="zz2" fill="#bfeede" font-family="'Press Start 2P'" font-size="6">z</text>
+      <text x="13" y="-38" class="zz3" fill="#bfeede" font-family="'Press Start 2P'" font-size="7">z</text>
+    </g>
+  </g></g>
+    </g>
+  
+  <!-- FLOOR bottom strip -->
+  <rect x="0" y="444" width="900" height="16" fill="#050c1a"/>
+  <rect x="0" y="443" width="900" height="2" fill="#1a3050"/>
+</svg></div>
 
-  <!-- HULL TOP BAR -->
-  <div class="hull-top">
-    <div class="hull-label">ORBIT COMMAND VESSEL · DECK A</div>
-    <div class="hull-indicators">
-      <div class="ind g"></div>
-      <div class="ind c"></div>
-      <div class="ind o"></div>
-    </div>
-    <div class="hull-clock" id="hullClock">--:--:--</div>
+<div class="terminal-wrap">
+  <div class="term-bar">
+    <span class="tdots"><i></i><i></i><i></i></span>
+    <span class="tlbl">orbit@crew ~/orbitcrm &mdash; mission terminal</span>
   </div>
+  <div class="term-body" id="term"></div>
+</div>
 
-  <!-- MAIN SCENE -->
-  <div class="ship-scene" id="scene">
-
-    <!-- AMBIENT LIGHT -->
-    <div class="amb" style="width:400px;height:300px;background:var(--purple);top:-80px;left:20%"></div>
-    <div class="amb" style="width:300px;height:300px;background:var(--cyan);top:-60px;right:5%"></div>
-    <div class="amb" style="width:350px;height:300px;background:#0a1840;bottom:-50px;left:40%"></div>
-
-    <!-- VIEWPORT WINDOWS with starfield -->
-    <div class="windows-row" id="windowsRow">
-      <div class="window" id="w1"></div>
-      <div class="window" id="w2"></div>
-      <div class="window" id="w3"></div>
-      <div class="window" id="w4"></div>
-      <div class="window" id="w5"></div>
-    </div>
-
-    <!-- CEILING PANEL -->
-    <div class="ceiling-panel">
-      <div class="ovhd" style="background:#00e5ff;box-shadow:0 0 6px #00e5ff"></div>
-      <div class="ovhd" style="background:#39ffb5;box-shadow:0 0 6px #39ffb5"></div>
-      <div class="ovhd" style="background:var(--gold);box-shadow:0 0 6px var(--gold)"></div>
-      <div class="ovhd" style="background:#ff3a5c;box-shadow:0 0 6px #ff3a5c"></div>
-      <div class="ovhd" style="background:#9b59ff;box-shadow:0 0 6px #9b59ff"></div>
-      <div class="ovhd" style="background:var(--gold);box-shadow:0 0 6px var(--gold)"></div>
-    </div>
-
-    <!-- SIDE WALLS -->
-    <div class="wall-left"></div>
-    <div class="wall-right"></div>
-
-    <!-- ══ BRIEFING BOARD (far left) ══ -->
-    <div class="briefing">
-      <div class="brief-hd">◆ BRIEFING</div>
-      <div class="brief-bd">
-        <div class="brief-bar" style="width:78%;background:linear-gradient(90deg,var(--gold),var(--gold2))"></div>
-        <div class="brief-bar" style="width:55%;background:linear-gradient(90deg,var(--cyan),var(--cyan2))"></div>
-        <div class="brief-row"><span>LEADS</span><span>2,847</span></div>
-        <div class="brief-row"><span>DEALS</span><span>$184K</span></div>
-        <div class="brief-row"><span>CONV</span><span>24.1%</span></div>
-        <div class="brief-kpi">
-          <div class="kpi"><div class="kpi-v">↑12</div><div class="kpi-l">TASKS</div></div>
-          <div class="kpi"><div class="kpi-v">99%</div><div class="kpi-l">UP</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ══ RIGHT STATUS PANEL ══ -->
-    <div class="right-panel">
-      <div class="rp-hd">SYSTEMS</div>
-      <div class="rp-row"><div class="rp-dot" style="background:var(--green);box-shadow:0 0 5px var(--green)"></div>ENGINE OK</div>
-      <div class="rp-row"><div class="rp-dot" style="background:var(--green);box-shadow:0 0 5px var(--green)"></div>SHIELDS OK</div>
-      <div class="rp-row"><div class="rp-dot" style="background:var(--cyan);box-shadow:0 0 5px var(--cyan)"></div>COMMS ON</div>
-      <div class="rp-row"><div class="rp-dot" style="background:var(--gold);box-shadow:0 0 5px var(--gold)"></div>ORBIT SYNC</div>
-      <div class="rp-row"><div class="rp-dot" style="background:var(--green);box-shadow:0 0 5px var(--green)"></div>AI CREW OK</div>
-    </div>
-
-    <!-- ══ WORKSTATIONS ══ -->
-
-    <!-- ROW 1: NOVA (center-top), ASTRA (top-right) -->
-    <div class="station idle" id="stNova" style="left:50%;top:95px;transform:translateX(-50%)">
-      <div class="stn-desk">
-        <div class="stn-top">
-          <div class="stn-monitor"><div class="stn-screen" id="scNova">ORBIT<br/>HQ</div></div>
-        </div>
-        <div class="stn-body"><div class="stn-led" id="ldNova"></div></div>
-      </div>
-      <div class="astro idle" id="aNova">
-        <div class="zzz-wrap"><span class="zzz">z</span><span class="zzz">z</span><span class="zzz">z</span></div>
-        <svg viewBox="0 0 40 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- CHAIR BACK -->
-  <rect x="4" y="30" width="32" height="20" rx="4" fill="#0a1220" stroke="rgba(0,229,255,0.15)" stroke-width="0.5"/>
-  <rect x="8" y="32" width="24" height="16" rx="3" fill="#0d1830"/>
-  <!-- CHAIR ARMS -->
-  <rect x="2" y="36" width="6" height="8" rx="2" fill="#080f1e" stroke="rgba(0,229,255,0.1)" stroke-width="0.5"/>
-  <rect x="32" y="36" width="6" height="8" rx="2" fill="#080f1e" stroke="rgba(0,229,255,0.1)" stroke-width="0.5"/>
-  <!-- BODY / SUIT -->
-  <rect x="11" y="28" width="18" height="14" rx="5" fill="#1e2a50"/>
-  <rect x="13" y="30" width="14" height="10" rx="3" fill="#1e2a50" opacity="0.7"/>
-  <!-- SUIT DETAILS — stripes -->
-  <rect x="11" y="33" width="4" height="1.5" rx="0.5" fill="#c9a84c" opacity="0.8"/>
-  <rect x="25" y="33" width="4" height="1.5" rx="0.5" fill="#c9a84c" opacity="0.8"/>
-  <!-- CHEST BADGE -->
-  <rect x="17" y="31" width="6" height="4" rx="1" fill="#f0c96b" opacity="0.6"/>
-  <rect x="18" y="32" width="4" height="2" rx="0.5" fill="#f0c96b" opacity="0.9"/>
-  <!-- ARMS -->
-  <rect x="6" y="30" width="6" height="10" rx="3" fill="#1e2a50"/>
-  <rect x="28" y="30" width="6" height="10" rx="3" fill="#1e2a50"/>
-  <!-- GLOVES -->
-  <ellipse cx="9" cy="41" rx="3.5" ry="2.5" fill="#1e2a50" opacity="0.8"/>
-  <ellipse cx="31" cy="41" rx="3.5" ry="2.5" fill="#1e2a50" opacity="0.8"/>
-  <!-- NECK -->
-  <rect x="17" y="24" width="6" height="5" rx="2" fill="#1e2a50"/>
-  <!-- HELMET -->
-  <circle cx="20" cy="18" r="11" fill="#1e2a50"/>
-  <circle cx="20" cy="18" r="10" fill="#1e2a50" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
-  <!-- VISOR (large, dark) -->
-  <ellipse cx="20" cy="18" rx="7.5" ry="6.5" fill="#04080f" class="visor-glow"/>
-  <!-- VISOR inner glow -->
-  <ellipse cx="20" cy="18" rx="7.5" ry="6.5" fill="#c9a84c" opacity="0.18" class="visor-glow"/>
-  <!-- VISOR reflection -->
-  <ellipse cx="17" cy="15.5" rx="2.5" ry="1.8" fill="rgba(255,255,255,0.08)"/>
-  <!-- HELMET STRIPE -->
-  <path d="M10 14 Q20 8 30 14" stroke="#c9a84c" stroke-width="1.5" fill="none" opacity="0.7"/>
-  <!-- HELMET BADGE DOT -->
-  <circle cx="29" cy="11" r="1.5" fill="#f0c96b"/>
-  <!-- ANTENNA -->
-  <line x1="24" y1="8" x2="26" y2="4" stroke="#c9a84c" stroke-width="1" opacity="0.6"/>
-  <circle cx="26.5" cy="3.5" r="1.2" fill="#f0c96b" opacity="0.8"/>
-</svg>
-      </div>
-      <div class="stn-label"><b>NOVA</b>Director</div>
-    </div>
-
-    <div class="station idle" id="stAstra" style="right:115px;top:95px">
-      <div class="stn-desk">
-        <div class="stn-top">
-          <div class="stn-monitor"><div class="stn-screen" id="scAstra">LEADS<br/>GEN</div></div>
-        </div>
-        <div class="stn-body"><div class="stn-led" id="ldAstra"></div></div>
-      </div>
-      <div class="astro idle" id="aAstra">
-        <div class="zzz-wrap"><span class="zzz">z</span><span class="zzz">z</span><span class="zzz">z</span></div>
-        <svg viewBox="0 0 40 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- CHAIR BACK -->
-  <rect x="4" y="30" width="32" height="20" rx="4" fill="#0a1220" stroke="rgba(0,229,255,0.15)" stroke-width="0.5"/>
-  <rect x="8" y="32" width="24" height="16" rx="3" fill="#0d1830"/>
-  <!-- CHAIR ARMS -->
-  <rect x="2" y="36" width="6" height="8" rx="2" fill="#080f1e" stroke="rgba(0,229,255,0.1)" stroke-width="0.5"/>
-  <rect x="32" y="36" width="6" height="8" rx="2" fill="#080f1e" stroke="rgba(0,229,255,0.1)" stroke-width="0.5"/>
-  <!-- BODY / SUIT -->
-  <rect x="11" y="28" width="18" height="14" rx="5" fill="#163030"/>
-  <rect x="13" y="30" width="14" height="10" rx="3" fill="#163030" opacity="0.7"/>
-  <!-- SUIT DETAILS — stripes -->
-  <rect x="11" y="33" width="4" height="1.5" rx="0.5" fill="#00e5ff" opacity="0.8"/>
-  <rect x="25" y="33" width="4" height="1.5" rx="0.5" fill="#00e5ff" opacity="0.8"/>
-  <!-- CHEST BADGE -->
-  <rect x="17" y="31" width="6" height="4" rx="1" fill="#39ffb5" opacity="0.6"/>
-  <rect x="18" y="32" width="4" height="2" rx="0.5" fill="#39ffb5" opacity="0.9"/>
-  <!-- ARMS -->
-  <rect x="6" y="30" width="6" height="10" rx="3" fill="#163030"/>
-  <rect x="28" y="30" width="6" height="10" rx="3" fill="#163030"/>
-  <!-- GLOVES -->
-  <ellipse cx="9" cy="41" rx="3.5" ry="2.5" fill="#163030" opacity="0.8"/>
-  <ellipse cx="31" cy="41" rx="3.5" ry="2.5" fill="#163030" opacity="0.8"/>
-  <!-- NECK -->
-  <rect x="17" y="24" width="6" height="5" rx="2" fill="#163030"/>
-  <!-- HELMET -->
-  <circle cx="20" cy="18" r="11" fill="#163030"/>
-  <circle cx="20" cy="18" r="10" fill="#163030" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
-  <!-- VISOR (large, dark) -->
-  <ellipse cx="20" cy="18" rx="7.5" ry="6.5" fill="#04080f" class="visor-glow"/>
-  <!-- VISOR inner glow -->
-  <ellipse cx="20" cy="18" rx="7.5" ry="6.5" fill="#00e5ff" opacity="0.18" class="visor-glow"/>
-  <!-- VISOR reflection -->
-  <ellipse cx="17" cy="15.5" rx="2.5" ry="1.8" fill="rgba(255,255,255,0.08)"/>
-  <!-- HELMET STRIPE -->
-  <path d="M10 14 Q20 8 30 14" stroke="#00e5ff" stroke-width="1.5" fill="none" opacity="0.7"/>
-  <!-- HELMET BADGE DOT -->
-  <circle cx="29" cy="11" r="1.5" fill="#39ffb5"/>
-  <!-- ANTENNA -->
-  <line x1="24" y1="8" x2="26" y2="4" stroke="#00e5ff" stroke-width="1" opacity="0.6"/>
-  <circle cx="26.5" cy="3.5" r="1.2" fill="#39ffb5" opacity="0.8"/>
-</svg>
-      </div>
-      <div class="stn-label"><b>ASTRA</b>Lead Gen</div>
-    </div>
-
-    <!-- ROW 2: REX (mid-left), ORION (mid-right) -->
-    <div class="station idle" id="stRex" style="left:190px;top:270px">
-      <div class="stn-desk">
-        <div class="stn-top">
-          <div class="stn-monitor"><div class="stn-screen" id="scRex">SALES<br/>CRM</div></div>
-        </div>
-        <div class="stn-body"><div class="stn-led" id="ldRex"></div></div>
-      </div>
-      <div class="astro idle" id="aRex">
-        <div class="zzz-wrap"><span class="zzz">z</span><span class="zzz">z</span><span class="zzz">z</span></div>
-        <svg viewBox="0 0 40 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- CHAIR BACK -->
-  <rect x="4" y="30" width="32" height="20" rx="4" fill="#0a1220" stroke="rgba(0,229,255,0.15)" stroke-width="0.5"/>
-  <rect x="8" y="32" width="24" height="16" rx="3" fill="#0d1830"/>
-  <!-- CHAIR ARMS -->
-  <rect x="2" y="36" width="6" height="8" rx="2" fill="#080f1e" stroke="rgba(0,229,255,0.1)" stroke-width="0.5"/>
-  <rect x="32" y="36" width="6" height="8" rx="2" fill="#080f1e" stroke="rgba(0,229,255,0.1)" stroke-width="0.5"/>
-  <!-- BODY / SUIT -->
-  <rect x="11" y="28" width="18" height="14" rx="5" fill="#2a1a0a"/>
-  <rect x="13" y="30" width="14" height="10" rx="3" fill="#2a1a0a" opacity="0.7"/>
-  <!-- SUIT DETAILS — stripes -->
-  <rect x="11" y="33" width="4" height="1.5" rx="0.5" fill="#ff8c42" opacity="0.8"/>
-  <rect x="25" y="33" width="4" height="1.5" rx="0.5" fill="#ff8c42" opacity="0.8"/>
-  <!-- CHEST BADGE -->
-  <rect x="17" y="31" width="6" height="4" rx="1" fill="#ffb47a" opacity="0.6"/>
-  <rect x="18" y="32" width="4" height="2" rx="0.5" fill="#ffb47a" opacity="0.9"/>
-  <!-- ARMS -->
-  <rect x="6" y="30" width="6" height="10" rx="3" fill="#2a1a0a"/>
-  <rect x="28" y="30" width="6" height="10" rx="3" fill="#2a1a0a"/>
-  <!-- GLOVES -->
-  <ellipse cx="9" cy="41" rx="3.5" ry="2.5" fill="#2a1a0a" opacity="0.8"/>
-  <ellipse cx="31" cy="41" rx="3.5" ry="2.5" fill="#2a1a0a" opacity="0.8"/>
-  <!-- NECK -->
-  <rect x="17" y="24" width="6" height="5" rx="2" fill="#2a1a0a"/>
-  <!-- HELMET -->
-  <circle cx="20" cy="18" r="11" fill="#2a1a0a"/>
-  <circle cx="20" cy="18" r="10" fill="#2a1a0a" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
-  <!-- VISOR (large, dark) -->
-  <ellipse cx="20" cy="18" rx="7.5" ry="6.5" fill="#04080f" class="visor-glow"/>
-  <!-- VISOR inner glow -->
-  <ellipse cx="20" cy="18" rx="7.5" ry="6.5" fill="#ff8c42" opacity="0.18" class="visor-glow"/>
-  <!-- VISOR reflection -->
-  <ellipse cx="17" cy="15.5" rx="2.5" ry="1.8" fill="rgba(255,255,255,0.08)"/>
-  <!-- HELMET STRIPE -->
-  <path d="M10 14 Q20 8 30 14" stroke="#ff8c42" stroke-width="1.5" fill="none" opacity="0.7"/>
-  <!-- HELMET BADGE DOT -->
-  <circle cx="29" cy="11" r="1.5" fill="#ffb47a"/>
-  <!-- ANTENNA -->
-  <line x1="24" y1="8" x2="26" y2="4" stroke="#ff8c42" stroke-width="1" opacity="0.6"/>
-  <circle cx="26.5" cy="3.5" r="1.2" fill="#ffb47a" opacity="0.8"/>
-</svg>
-      </div>
-      <div class="stn-label"><b>REX</b>Sales</div>
-    </div>
-
-    <div class="station idle" id="stOrion" style="right:115px;top:270px">
-      <div class="stn-desk">
-        <div class="stn-top">
-          <div class="stn-monitor"><div class="stn-screen" id="scOrion">WEB<br/>DEV</div></div>
-        </div>
-        <div class="stn-body"><div class="stn-led" id="ldOrion"></div></div>
-      </div>
-      <div class="astro idle" id="aOrion">
-        <div class="zzz-wrap"><span class="zzz">z</span><span class="zzz">z</span><span class="zzz">z</span></div>
-        <svg viewBox="0 0 40 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- CHAIR BACK -->
-  <rect x="4" y="30" width="32" height="20" rx="4" fill="#0a1220" stroke="rgba(0,229,255,0.15)" stroke-width="0.5"/>
-  <rect x="8" y="32" width="24" height="16" rx="3" fill="#0d1830"/>
-  <!-- CHAIR ARMS -->
-  <rect x="2" y="36" width="6" height="8" rx="2" fill="#080f1e" stroke="rgba(0,229,255,0.1)" stroke-width="0.5"/>
-  <rect x="32" y="36" width="6" height="8" rx="2" fill="#080f1e" stroke="rgba(0,229,255,0.1)" stroke-width="0.5"/>
-  <!-- BODY / SUIT -->
-  <rect x="11" y="28" width="18" height="14" rx="5" fill="#1e1540"/>
-  <rect x="13" y="30" width="14" height="10" rx="3" fill="#1e1540" opacity="0.7"/>
-  <!-- SUIT DETAILS — stripes -->
-  <rect x="11" y="33" width="4" height="1.5" rx="0.5" fill="#9b59ff" opacity="0.8"/>
-  <rect x="25" y="33" width="4" height="1.5" rx="0.5" fill="#9b59ff" opacity="0.8"/>
-  <!-- CHEST BADGE -->
-  <rect x="17" y="31" width="6" height="4" rx="1" fill="#b47bff" opacity="0.6"/>
-  <rect x="18" y="32" width="4" height="2" rx="0.5" fill="#b47bff" opacity="0.9"/>
-  <!-- ARMS -->
-  <rect x="6" y="30" width="6" height="10" rx="3" fill="#1e1540"/>
-  <rect x="28" y="30" width="6" height="10" rx="3" fill="#1e1540"/>
-  <!-- GLOVES -->
-  <ellipse cx="9" cy="41" rx="3.5" ry="2.5" fill="#1e1540" opacity="0.8"/>
-  <ellipse cx="31" cy="41" rx="3.5" ry="2.5" fill="#1e1540" opacity="0.8"/>
-  <!-- NECK -->
-  <rect x="17" y="24" width="6" height="5" rx="2" fill="#1e1540"/>
-  <!-- HELMET -->
-  <circle cx="20" cy="18" r="11" fill="#1e1540"/>
-  <circle cx="20" cy="18" r="10" fill="#1e1540" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
-  <!-- VISOR (large, dark) -->
-  <ellipse cx="20" cy="18" rx="7.5" ry="6.5" fill="#04080f" class="visor-glow"/>
-  <!-- VISOR inner glow -->
-  <ellipse cx="20" cy="18" rx="7.5" ry="6.5" fill="#9b59ff" opacity="0.18" class="visor-glow"/>
-  <!-- VISOR reflection -->
-  <ellipse cx="17" cy="15.5" rx="2.5" ry="1.8" fill="rgba(255,255,255,0.08)"/>
-  <!-- HELMET STRIPE -->
-  <path d="M10 14 Q20 8 30 14" stroke="#9b59ff" stroke-width="1.5" fill="none" opacity="0.7"/>
-  <!-- HELMET BADGE DOT -->
-  <circle cx="29" cy="11" r="1.5" fill="#b47bff"/>
-  <!-- ANTENNA -->
-  <line x1="24" y1="8" x2="26" y2="4" stroke="#9b59ff" stroke-width="1" opacity="0.6"/>
-  <circle cx="26.5" cy="3.5" r="1.2" fill="#b47bff" opacity="0.8"/>
-</svg>
-      </div>
-      <div class="stn-label"><b>ORION</b>Web Dev</div>
-    </div>
-
-    <!-- ROW 3: VERA (bottom-left), LUNA (bottom-right) -->
-    <div class="station idle" id="stVera" style="left:190px;top:415px">
-      <div class="stn-desk">
-        <div class="stn-top">
-          <div class="stn-monitor"><div class="stn-screen" id="scVera">OPS<br/>KPI</div></div>
-        </div>
-        <div class="stn-body"><div class="stn-led" id="ldVera"></div></div>
-      </div>
-      <div class="astro idle" id="aVera">
-        <div class="zzz-wrap"><span class="zzz">z</span><span class="zzz">z</span><span class="zzz">z</span></div>
-        <svg viewBox="0 0 40 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- CHAIR BACK -->
-  <rect x="4" y="30" width="32" height="20" rx="4" fill="#0a1220" stroke="rgba(0,229,255,0.15)" stroke-width="0.5"/>
-  <rect x="8" y="32" width="24" height="16" rx="3" fill="#0d1830"/>
-  <!-- CHAIR ARMS -->
-  <rect x="2" y="36" width="6" height="8" rx="2" fill="#080f1e" stroke="rgba(0,229,255,0.1)" stroke-width="0.5"/>
-  <rect x="32" y="36" width="6" height="8" rx="2" fill="#080f1e" stroke="rgba(0,229,255,0.1)" stroke-width="0.5"/>
-  <!-- BODY / SUIT -->
-  <rect x="11" y="28" width="18" height="14" rx="5" fill="#0a1430"/>
-  <rect x="13" y="30" width="14" height="10" rx="3" fill="#0a1430" opacity="0.7"/>
-  <!-- SUIT DETAILS — stripes -->
-  <rect x="11" y="33" width="4" height="1.5" rx="0.5" fill="#00e5ff" opacity="0.8"/>
-  <rect x="25" y="33" width="4" height="1.5" rx="0.5" fill="#00e5ff" opacity="0.8"/>
-  <!-- CHEST BADGE -->
-  <rect x="17" y="31" width="6" height="4" rx="1" fill="#80f7ff" opacity="0.6"/>
-  <rect x="18" y="32" width="4" height="2" rx="0.5" fill="#80f7ff" opacity="0.9"/>
-  <!-- ARMS -->
-  <rect x="6" y="30" width="6" height="10" rx="3" fill="#0a1430"/>
-  <rect x="28" y="30" width="6" height="10" rx="3" fill="#0a1430"/>
-  <!-- GLOVES -->
-  <ellipse cx="9" cy="41" rx="3.5" ry="2.5" fill="#0a1430" opacity="0.8"/>
-  <ellipse cx="31" cy="41" rx="3.5" ry="2.5" fill="#0a1430" opacity="0.8"/>
-  <!-- NECK -->
-  <rect x="17" y="24" width="6" height="5" rx="2" fill="#0a1430"/>
-  <!-- HELMET -->
-  <circle cx="20" cy="18" r="11" fill="#0a1430"/>
-  <circle cx="20" cy="18" r="10" fill="#0a1430" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
-  <!-- VISOR (large, dark) -->
-  <ellipse cx="20" cy="18" rx="7.5" ry="6.5" fill="#04080f" class="visor-glow"/>
-  <!-- VISOR inner glow -->
-  <ellipse cx="20" cy="18" rx="7.5" ry="6.5" fill="#26f0ff" opacity="0.18" class="visor-glow"/>
-  <!-- VISOR reflection -->
-  <ellipse cx="17" cy="15.5" rx="2.5" ry="1.8" fill="rgba(255,255,255,0.08)"/>
-  <!-- HELMET STRIPE -->
-  <path d="M10 14 Q20 8 30 14" stroke="#00e5ff" stroke-width="1.5" fill="none" opacity="0.7"/>
-  <!-- HELMET BADGE DOT -->
-  <circle cx="29" cy="11" r="1.5" fill="#80f7ff"/>
-  <!-- ANTENNA -->
-  <line x1="24" y1="8" x2="26" y2="4" stroke="#00e5ff" stroke-width="1" opacity="0.6"/>
-  <circle cx="26.5" cy="3.5" r="1.2" fill="#80f7ff" opacity="0.8"/>
-</svg>
-      </div>
-      <div class="stn-label"><b>VERA</b>Ops</div>
-    </div>
-
-    <div class="station idle" id="stLuna" style="right:115px;top:415px">
-      <div class="stn-desk">
-        <div class="stn-top">
-          <div class="stn-monitor"><div class="stn-screen" id="scLuna">APP<br/>DEV</div></div>
-        </div>
-        <div class="stn-body"><div class="stn-led" id="ldLuna"></div></div>
-      </div>
-      <div class="astro idle" id="aLuna">
-        <div class="zzz-wrap"><span class="zzz">z</span><span class="zzz">z</span><span class="zzz">z</span></div>
-        <svg viewBox="0 0 40 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- CHAIR BACK -->
-  <rect x="4" y="30" width="32" height="20" rx="4" fill="#0a1220" stroke="rgba(0,229,255,0.15)" stroke-width="0.5"/>
-  <rect x="8" y="32" width="24" height="16" rx="3" fill="#0d1830"/>
-  <!-- CHAIR ARMS -->
-  <rect x="2" y="36" width="6" height="8" rx="2" fill="#080f1e" stroke="rgba(0,229,255,0.1)" stroke-width="0.5"/>
-  <rect x="32" y="36" width="6" height="8" rx="2" fill="#080f1e" stroke="rgba(0,229,255,0.1)" stroke-width="0.5"/>
-  <!-- BODY / SUIT -->
-  <rect x="11" y="28" width="18" height="14" rx="5" fill="#2a1030"/>
-  <rect x="13" y="30" width="14" height="10" rx="3" fill="#2a1030" opacity="0.7"/>
-  <!-- SUIT DETAILS — stripes -->
-  <rect x="11" y="33" width="4" height="1.5" rx="0.5" fill="#ff6eb4" opacity="0.8"/>
-  <rect x="25" y="33" width="4" height="1.5" rx="0.5" fill="#ff6eb4" opacity="0.8"/>
-  <!-- CHEST BADGE -->
-  <rect x="17" y="31" width="6" height="4" rx="1" fill="#ff6eb4" opacity="0.6"/>
-  <rect x="18" y="32" width="4" height="2" rx="0.5" fill="#ff6eb4" opacity="0.9"/>
-  <!-- ARMS -->
-  <rect x="6" y="30" width="6" height="10" rx="3" fill="#2a1030"/>
-  <rect x="28" y="30" width="6" height="10" rx="3" fill="#2a1030"/>
-  <!-- GLOVES -->
-  <ellipse cx="9" cy="41" rx="3.5" ry="2.5" fill="#2a1030" opacity="0.8"/>
-  <ellipse cx="31" cy="41" rx="3.5" ry="2.5" fill="#2a1030" opacity="0.8"/>
-  <!-- NECK -->
-  <rect x="17" y="24" width="6" height="5" rx="2" fill="#2a1030"/>
-  <!-- HELMET -->
-  <circle cx="20" cy="18" r="11" fill="#2a1030"/>
-  <circle cx="20" cy="18" r="10" fill="#2a1030" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
-  <!-- VISOR (large, dark) -->
-  <ellipse cx="20" cy="18" rx="7.5" ry="6.5" fill="#04080f" class="visor-glow"/>
-  <!-- VISOR inner glow -->
-  <ellipse cx="20" cy="18" rx="7.5" ry="6.5" fill="#ff6eb4" opacity="0.18" class="visor-glow"/>
-  <!-- VISOR reflection -->
-  <ellipse cx="17" cy="15.5" rx="2.5" ry="1.8" fill="rgba(255,255,255,0.08)"/>
-  <!-- HELMET STRIPE -->
-  <path d="M10 14 Q20 8 30 14" stroke="#ff6eb4" stroke-width="1.5" fill="none" opacity="0.7"/>
-  <!-- HELMET BADGE DOT -->
-  <circle cx="29" cy="11" r="1.5" fill="#ff6eb4"/>
-  <!-- ANTENNA -->
-  <line x1="24" y1="8" x2="26" y2="4" stroke="#ff6eb4" stroke-width="1" opacity="0.6"/>
-  <circle cx="26.5" cy="3.5" r="1.2" fill="#ff6eb4" opacity="0.8"/>
-</svg>
-      </div>
-      <div class="stn-label"><b>LUNA</b>App Dev</div>
-    </div>
-
-    <!-- FLOOR -->
-    <div class="ship-floor"><div class="floor-grid"></div></div>
-
-  </div><!-- /ship-scene -->
-</div><!-- /ship-outer -->
-
-<!-- ══ CONTROLS ══ -->
-<div class="page-body">
-  <div class="divider"></div>
-  <div class="sec">Quick Launch</div>
-  <div class="chips" id="chips">
-    <button class="chip c1" data-cmd="Find 100 businesses that need websites">🔍 Find 100 Biz Leads</button>
-    <button class="chip c2" data-cmd="Build a lead-capture landing page">⚡ Build Landing Page</button>
-    <button class="chip c3" data-cmd="Add an SMS + email welcome flow">💬 SMS + Email Flow</button>
-    <button class="chip c4" data-cmd="Update sales pipeline and create follow-up tasks">📈 Update Pipeline</button>
-    <button class="chip c1" data-cmd="Generate weekly operations report with KPIs">📊 Weekly Ops Report</button>
-    <button class="chip c2" data-cmd="Full launch: CRM + leads + landing page + email flows">🚀 Full Launch</button>
+<div class="ctrl">
+  <div class="ctrl-lbl">Dispatch Order</div>
+  <div class="ctrl-row">
+    <input class="ctrl-input" id="cmd" autocomplete="off" placeholder="e.g. Find 100 businesses that need websites"/>
+    <button class="run-btn" id="run">DISPATCH</button>
   </div>
+  <div class="chips" id="chips"></div>
+</div>
 
-  <div class="action-row">
-    <button class="run-btn" id="runBtn">
-      <svg viewBox="0 0 16 16" fill="currentColor"><polygon points="3,1 13,8 3,15"/></svg>
-      DEPLOY CREW
-    </button>
-    <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--ink3)">or type a mission ↓</span>
-  </div>
+<div class="footer">Orbit Mission Deck &middot; cockpit preview &mdash; same crew runs inside your app</div>
+</div>
 
-  <div class="row2">
-    <div>
-      <div class="sec">Mission Terminal</div>
-      <div class="terminal">
-        <div class="term-bar">
-          <div class="tdots">
-            <div class="tdot" style="background:#ff5f57"></div>
-            <div class="tdot" style="background:#ffbd2e"></div>
-            <div class="tdot" style="background:#28c840"></div>
-          </div>
-          <div class="term-title">ORBIT@VESSEL &nbsp;—— ~/ORBITCRM</div>
-        </div>
-        <div class="term-body" id="termBody">
-          <div class="tln"><span class="tp">orbit ›</span> <span class="ti">All stations online. Crew at their posts.</span></div>
-          <div class="tln"><span class="tp">orbit ›</span> <span class="to">6-agent crew ready for orders.</span></div>
-          <div class="tln"><span class="tp">orbit ›</span> <span style="color:var(--ink3)">Deploy a mission to activate the crew.</span></div>
-          <div class="tln" id="termCursor"><span class="tp">orbit ›</span> <span class="tcaret">_</span></div>
-        </div>
-        <div class="term-input">
-          <span class="tp" style="font-family:'JetBrains Mono',monospace;font-size:11px">orbit ›</span>
-          <input type="text" id="cmdInput" placeholder="Give the crew a mission..." autocomplete="off" spellcheck="false"/>
-        </div>
-      </div>
-    </div>
+<script>
+(function(){
+// Clock
+function tick(){
+  var d=new Date();
+  document.getElementById('clock').textContent=
+    ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)+':'+('0'+d.getSeconds()).slice(-2)+' UTC';
+}
+tick();setInterval(tick,1000);
 
-    <div>
-      <div class="sec">Crew Status</div>
-      <div class="crew-grid">
-        <div class="cc" style="--acc:var(--gold)">
-          <div class="cc-top"><div class="cc-icon">✨</div><div><div class="cc-name">NOVA</div><div class="cc-role">Director</div></div></div>
-          <div class="cc-status"><div class="cc-dot" style="background:var(--green);box-shadow:0 0 5px var(--green)"></div><span style="color:var(--green);font-family:'JetBrains Mono',monospace;font-size:8.5px" id="csNova">IDLE</span></div>
-          <div class="cc-task" id="ctNova">At station.</div>
-        </div>
-        <div class="cc" style="--acc:var(--green)">
-          <div class="cc-top"><div class="cc-icon">🔎</div><div><div class="cc-name">ASTRA</div><div class="cc-role">Lead Gen</div></div></div>
-          <div class="cc-status"><div class="cc-dot" style="background:var(--green);box-shadow:0 0 5px var(--green)"></div><span style="color:var(--green);font-family:'JetBrains Mono',monospace;font-size:8.5px" id="csAstra">IDLE</span></div>
-          <div class="cc-task" id="ctAstra">At station.</div>
-        </div>
-        <div class="cc" style="--acc:var(--purple)">
-          <div class="cc-top"><div class="cc-icon">💻</div><div><div class="cc-name">ORION</div><div class="cc-role">Web Dev</div></div></div>
-          <div class="cc-status"><div class="cc-dot" style="background:var(--green);box-shadow:0 0 5px var(--green)"></div><span style="color:var(--green);font-family:'JetBrains Mono',monospace;font-size:8.5px" id="csOrion">IDLE</span></div>
-          <div class="cc-task" id="ctOrion">At station.</div>
-        </div>
-        <div class="cc" style="--acc:var(--pink)">
-          <div class="cc-top"><div class="cc-icon">📱</div><div><div class="cc-name">LUNA</div><div class="cc-role">App Dev</div></div></div>
-          <div class="cc-status"><div class="cc-dot" style="background:var(--green);box-shadow:0 0 5px var(--green)"></div><span style="color:var(--green);font-family:'JetBrains Mono',monospace;font-size:8.5px" id="csLuna">IDLE</span></div>
-          <div class="cc-task" id="ctLuna">At station.</div>
-        </div>
-        <div class="cc" style="--acc:var(--orange)">
-          <div class="cc-top"><div class="cc-icon">📈</div><div><div class="cc-name">REX</div><div class="cc-role">Sales</div></div></div>
-          <div class="cc-status"><div class="cc-dot" style="background:var(--green);box-shadow:0 0 5px var(--green)"></div><span style="color:var(--green);font-family:'JetBrains Mono',monospace;font-size:8.5px" id="csRex">IDLE</span></div>
-          <div class="cc-task" id="ctRex">At station.</div>
-        </div>
-        <div class="cc" style="--acc:var(--cyan)">
-          <div class="cc-top"><div class="cc-icon">📊</div><div><div class="cc-name">VERA</div><div class="cc-role">Ops</div></div></div>
-          <div class="cc-status"><div class="cc-dot" style="background:var(--green);box-shadow:0 0 5px var(--green)"></div><span style="color:var(--green);font-family:'JetBrains Mono',monospace;font-size:8.5px" id="csVera">IDLE</span></div>
-          <div class="cc-task" id="ctVera">At station.</div>
-        </div>
-      </div>
-    </div>
-  </div>
+// Agent colors map
+var AGENT_COLORS={nova:'#f0c96b',astra:'#00e5ff',orion:'#a78bfa',luna:'#f472b6',rex:'#fb923c',vera:'#7dd3fc'};
 
-  <div class="cockpit"><b>ORBIT MISSION DECK</b> &middot; COMMAND VESSEL PREVIEW &middot; CREW RUNS FOR REAL INSIDE YOUR APP</div>
-</div><!-- /page-body -->
-</div><!-- /wrap --><script>
-// ── CLOCK ──
-(function tick(){
-  const el=document.getElementById('hullClock');
-  if(el){const n=new Date();el.textContent=[n.getHours(),n.getMinutes(),n.getSeconds()].map(x=>String(x).padStart(2,'0')).join(':');}
-  setTimeout(tick,1000);
-})();
-
-// ── STARS IN WINDOWS ──
-['w1','w2','w3','w4','w5'].forEach(id=>{
-  const w=document.getElementById(id);
-  if(!w)return;
-  for(let i=0;i<18;i++){
-    const s=document.createElement('div');s.className='wstar';
-    const sz=Math.random()*1.8+0.4;
-    s.style.cssText='width:'+sz+'px;height:'+sz+'px;left:'+Math.random()*100+'%;top:'+Math.random()*100+'%;--d:'+(Math.random()*2)+'s;opacity:'+(0.3+Math.random()*0.6);
-    w.appendChild(s);
+// Screen state: set screen fill + glow
+function setScreen(name, mode){
+  var s1=document.getElementById('scr-'+name);
+  var s2=document.getElementById('scr-'+name+'-inner');
+  if(!s1)return;
+  if(mode==='work'){
+    s1.setAttribute('fill','#1a0810');
+    s1.setAttribute('stroke',AGENT_COLORS[name]+'cc');
+    if(s2)s2.setAttribute('fill','#e8303a');
+    // visor glow
+    var vg=document.querySelector('.astro-'+name+' .visor-glow');
+    if(vg)vg.setAttribute('opacity','0.6');
+    var vs=document.querySelector('.astro-'+name+' .visor-shine');
+    if(vs)vs.setAttribute('opacity','1');
+    // antenna pulse
+    var ant=document.querySelector('.astro-'+name+' .antenna-dot');
+    if(ant){ant.setAttribute('fill','#e8303a');ant.style.filter='drop-shadow(0 0 4px #e8303a)';}
+    // zzz off
+    var az=document.querySelector('.astro-'+name+' .zzz');
+    if(az)az.closest('.astro-body').closest('g').classList.remove('sleeping');
+  } else if(mode==='done'){
+    s1.setAttribute('fill','#081a10');
+    s1.setAttribute('stroke',AGENT_COLORS[name]+'aa');
+    if(s2)s2.setAttribute('fill','#1f9f76');
+    var vg2=document.querySelector('.astro-'+name+' .visor-glow');
+    if(vg2)vg2.setAttribute('opacity','0.3');
+    var ant2=document.querySelector('.astro-'+name+' .antenna-dot');
+    if(ant2){ant2.setAttribute('fill',AGENT_COLORS[name]);ant2.style.filter='';}
+  } else {
+    s1.setAttribute('fill','#020810');
+    s1.setAttribute('stroke',AGENT_COLORS[name]+'66');
+    if(s2)s2.setAttribute('fill','#0a0f18');
+    var vg3=document.querySelector('.astro-'+name+' .visor-glow');
+    if(vg3)vg3.setAttribute('opacity','0');
+    var vs3=document.querySelector('.astro-'+name+' .visor-shine');
+    if(vs3)vs3.setAttribute('opacity','0.7');
+    var ant3=document.querySelector('.astro-'+name+' .antenna-dot');
+    if(ant3){ant3.setAttribute('fill',AGENT_COLORS[name]);ant3.style.filter='';}
+    // idle: zzz
+    var bodyG=document.querySelector('.astro-'+name+' .astro-body');
+    var parentG=bodyG?bodyG.parentElement:null;
+    if(parentG)parentG.classList.add('sleeping');
   }
+}
+
+// All idle at start
+['nova','astra','orion','luna','rex','vera'].forEach(function(n){setScreen(n,'idle');});
+
+// Terminal
+var term=document.getElementById('term');
+function row(h){var l=document.createElement('div');l.className='ln';l.innerHTML=h;term.appendChild(l);term.scrollTop=term.scrollHeight;return l;}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function out(c,t){row('<span class="'+c+'">'+esc(t)+'</span>');}
+function wait(ms){return new Promise(function(r){setTimeout(r,ms);});}
+async function typeCmd(t){
+  var l=row('<span class="prompt">orbit &#10095; </span><span class="cmd"></span><span class="cur"></span>');
+  var sp=l.querySelector('.cmd'),c=l.querySelector('.cur');
+  for(var i=0;i<t.length;i++){sp.textContent+=t[i];term.scrollTop=term.scrollHeight;await wait(9+Math.random()*15);}
+  c.remove();
+}
+async function prog(label){
+  var l=row('<span class="mut">'+esc(label)+' </span><span class="bar"></span>');
+  var b=l.querySelector('.bar');
+  var bars=['░░░░░░░░░░','▓▓▓░░░░░░░','▓▓▓▓▓▓░░░░','▓▓▓▓▓▓▓▓▓░','▓▓▓▓▓▓▓▓▓▓'];
+  for(var i=0;i<bars.length;i++){b.textContent=bars[i]+' '+(i*25)+'%';term.scrollTop=term.scrollHeight;await wait(120);}
+  b.innerHTML='▓▓▓▓▓▓▓▓▓▓ <span class="ok">DONE</span>';
+}
+function diff(f,a,d){row('<span class="file">'+esc(f)+'</span>');row('<span class="add">++ '+a+'</span>  <span class="del">-- '+d+'</span>');}
+
+// Route order to agents
+function route(o){
+  o=o.toLowerCase();var s={};
+  if(/research|competitor|market|find|analyz|intel|lead|business|prospect|scrape|website/.test(o))s.astra=1;
+  if(/landing|web|page|html|site|seo|copy|hero|design|ui|dashboard/.test(o))s.orion=1;
+  if(/app|mobile|feature|component|automat|backend|api|supabase|sms|email|crm|trigger|contact|task/.test(o))s.luna=1;
+  if(/sales|pipeline|deal|close|prospect|quota|revenue|follow.?up/.test(o))s.rex=1;
+  if(/ops|report|analytic|metric|kpi|track|monitor|status/.test(o))s.vera=1;
+  if(/everything|orbit|whole|full|launch|mvp|all/.test(o)){s.astra=1;s.orion=1;s.luna=1;s.rex=1;s.vera=1;}
+  var k=Object.keys(s);
+  if(!k.length){s.astra=1;s.luna=1;k=['astra','luna'];}
+  return k;
+}
+
+// Steps per agent
+function steps(k,o){
+  var ol=o.toLowerCase();
+  if(k==='astra')return[
+    {c:'orbit leadgen --needs-website --area "Santiago DR"',out:[['info','Scanning OSM + Google Maps directory…']]},
+    {p:'Filtering: no-website'},
+    {out:[['mut','Found 100 businesses → Orbit pipeline (New)']]},
+    {c:'orbit draft-sms --per-lead',out:[['ok','✓ SMS drafted → moved to "SMS Drafted"']]}
+  ];
+  if(k==='orion'){
+    var base=/dashboard|ui|design/.test(ol)?[
+      {c:'orbit ui scaffold --component dashboard',out:[['info','Generating layout…']]},
+      {p:'Rendering components'},{df:['dashboard/page.tsx','96','12']}
+    ]:[
+      {c:'orbit web new landing --with-form',out:[['info','Scaffolding landing + lead form…']]},
+      {p:'Building hero section'},{df:['landing/page.tsx','124','0']}
+    ];
+    return base.concat([{c:'orbit wire form → contacts',out:[['ok','Form submissions → contacts ✓']]},{p:'Lighthouse audit'},{out:[['mut','Perf 98 · A11y 96 · SEO 100']]}]);
+  }
+  if(k==='luna'){
+    if(/sms|email|welcome|trigger/.test(ol))return[
+      {c:'orbit secrets check',out:[['ok','Twilio ✓  Resend ✓']]},
+      {c:'orbit fn deploy welcome-message',out:[['info','Deploying edge function…']]},
+      {p:'Installing trigger'},{df:['welcome-message.ts','71','0']},
+      {c:'orbit test send --dry-run',out:[['ok','✓ SMS + email confirmed']]}
+    ];
+    return[{c:'orbit gen api --route contacts',out:[['info','Scaffolding endpoint…']]},{p:'Build + auth guard'},{df:['api/contacts/route.ts','58','4']},{c:'orbit deploy --preview',out:[['ok','✓ Preview deployed']]}];
+  }
+  if(k==='rex')return[
+    {c:'orbit pipeline update --stage "Follow-up" --bulk',out:[['info','Syncing warm leads…']]},
+    {p:'Updating CRM stages'},
+    {out:[['mut','8 deals → stage "Proposal" · avg value $4.2k']]},
+    {c:'orbit task create --follow-up --bulk --all-warm',out:[['ok','✓ 12 follow-up tasks created']]}
+  ];
+  if(k==='vera')return[
+    {c:'orbit report weekly --workspace --all',out:[['info','Pulling workspace metrics…']]},
+    {p:'Aggregating KPIs'},
+    {out:[['mut','Pipeline: $42k · Deals: 23 · Win rate: 68%']]},
+    {c:'orbit alert set --threshold 0.70 --metric conversion',out:[['ok','✓ Alert triggers configured']]}
+  ];
+  return[];
+}
+
+// Run a single agent
+async function runAgent(k,order){
+  setScreen(k,'work');
+  out('hdr','── '+k.toUpperCase()+' ─────────');
+  await wait(600);
+  var ST=steps(k,order);
+  for(var i=0;i<ST.length;i++){
+    var s=ST[i];
+    if(s.c)await typeCmd(s.c);
+    if(s.out)for(var j=0;j<s.out.length;j++){out(s.out[j][0],s.out[j][1]);await wait(260+Math.random()*180);}
+    if(s.p)await prog(s.p);
+    if(s.df)diff(s.df[0],s.df[1],s.df[2]);
+    await wait(120);
+  }
+  setScreen(k,'done');
+  await wait(2200);
+  setScreen(k,'idle');
+}
+
+// Main dispatch
+var running=false;
+var pill=document.getElementById('pill');
+var dled=document.getElementById('dled');
+var runBtn=document.getElementById('run');
+
+async function run(order){
+  if(running)return;
+  running=true;runBtn.disabled=true;
+  pill.textContent='DISPATCHING';
+  dled.className='status-dot s-red';
+  out('info','NOVA: all crew to briefing stations…');
+  setScreen('nova','work');
+  await typeCmd('orbit dispatch "'+order+'"');
+  await wait(1200);
+  var crew=route(order);
+  out('mut','Crew assigned: '+crew.map(function(k){return k.toUpperCase();}).join(', '));
+  await wait(400);
+  setScreen('nova','idle');
+  for(var i=0;i<crew.length;i++){
+    await runAgent(crew[i],order);
+    await wait(200);
+  }
+  out('ok','✔ Mission complete — all deliverables shipped.');
+  row('<span class="prompt">orbit &#10095; </span><span class="cur"></span>');
+  pill.textContent='CREW READY';
+  dled.className='status-dot s-green';
+  running=false;runBtn.disabled=false;
+}
+
+// Chips
+var QUICK=[
+  'Find 100 businesses that need websites',
+  'Build a lead-capture landing page',
+  'Add an SMS + email welcome flow',
+  'Update sales pipeline + follow-ups',
+  'Generate weekly ops report',
+  'Full launch: CRM + leads + site + ops'
+];
+var chips=document.getElementById('chips');
+QUICK.forEach(function(q){
+  var c=document.createElement('button');c.className='chip';c.textContent=q;
+  c.onclick=function(){if(running)return;document.getElementById('cmd').value=q;run(q);};
+  chips.appendChild(c);
 });
+runBtn.onclick=function(){var v=document.getElementById('cmd').value.trim();if(!v){out('warn','Type a mission order first.');return;}run(v);};
+document.getElementById('cmd').addEventListener('keydown',function(e){if(e.key==='Enter'){var v=this.value.trim();if(v)run(v);}});
 
-// ── AGENT CONFIG ──
-const AG={
-  nova: {st:'stNova', as:'aNova', sc:'scNova', cs:'csNova', ct:'ctNova'},
-  astra:{st:'stAstra',as:'aAstra',sc:'scAstra',cs:'csAstra',ct:'ctAstra'},
-  orion:{st:'stOrion',as:'aOrion',sc:'scOrion',cs:'csOrion',ct:'ctOrion'},
-  luna: {st:'stLuna', as:'aLuna', sc:'scLuna', cs:'csLuna', ct:'ctLuna'},
-  rex:  {st:'stRex',  as:'aRex',  sc:'scRex',  cs:'csRex',  ct:'ctRex'},
-  vera: {st:'stVera', as:'aVera', sc:'scVera',  cs:'csVera', ct:'ctVera'},
-};
-const TASKS={
-  nova: ['Orchestrating mission...','Briefing crew...','Monitoring agents...','Setting priorities...'],
-  astra:['Scraping lead databases...','Qualifying prospects...','Enriching contact data...','Building outreach lists...'],
-  orion:['Scaffolding Next.js...','Building UI components...','Deploying to edge...','Writing API routes...'],
-  luna: ['Building mobile screens...','Integrating push notifs...','Testing on devices...','Shipping build...'],
-  rex:  ['Updating pipeline...','Creating follow-up tasks...','Drafting outreach emails...','Analyzing deal velocity...'],
-  vera: ['Pulling weekly metrics...','Setting KPI alerts...','Generating ops report...','Monitoring dashboards...'],
-};
-const SCREENS={
-  nova: [['ORBIT','HQ'],['BRIEF','ING'],['STATUS','OK']],
-  astra:[['LEADS','GEN'],['SCRAPE','RUN'],['ENRICH','OK']],
-  orion:[['WEB','DEV'],['BUILD','RUN'],['DEPLOY','OK']],
-  luna: [['APP','DEV'],['BUILD','RUN'],['SHIP','OK']],
-  rex:  [['SALES','CRM'],['PIPE','RUN'],['CLOSE','OK']],
-  vera: [['OPS','KPI'],['PULL','RUN'],['ALERT','OK']],
-};
-const MOCK={
-  lead: ['Director → Assigning ASTRA to scrape & qualify','ASTRA ▶ Searching business directories...','ASTRA ▶ Found 847 prospects in target area','ASTRA ▶ Filtering by revenue criteria...','ASTRA ▶ Qualifying 234 high-intent leads','ASTRA ▶ Enriching with LinkedIn + email data','ASTRA ✔ 100 qualified leads added to CRM'],
-  web:  ['Director → Assigning ORION to build page','ORION ▶ Scaffolding Next.js project...','ORION ▶ Creating hero section with CTA','ORION ▶ Adding lead capture form','ORION ▶ Integrating CRM webhook...','ORION ▶ Deploying to edge network','ORION ✔ Landing page live at /lp/campaign-1'],
-  sms:  ['Director → Assigning LUNA to configure flows','LUNA ▶ Creating welcome SMS sequence...','LUNA ▶ Setting up 3-touch email onboarding','LUNA ▶ Configuring triggers...','LUNA ▶ Testing delivery to seed contacts','LUNA ✔ SMS + email flow activated'],
-  pipe: ['Director → Assigning REX to update CRM','REX ▶ Fetching all open deals...','REX ▶ Found 47 deals across 5 stages','REX ▶ Updating stale deals >14 days','REX ▶ Creating 47 follow-up tasks','REX ✔ Pipeline updated — 47 follow-ups created'],
-  ops:  ['Director → Assigning VERA to pull metrics','VERA ▶ Querying deals closed this week...','VERA ▶ Calculating conversion rates','VERA ▶ Comparing vs last week KPIs','VERA ▶ Generating report...','VERA ✔ Weekly ops report ready — 3 alerts set'],
-  full: ['Director → Full launch sequence initiated','ASTRA ▶ Generating 100 leads...','ORION ▶ Building landing page...','REX ▶ Updating pipeline...','LUNA ▶ Configuring email flows...','VERA ▶ Setting up KPI dashboard...','Director ✔ All systems go — full launch complete'],
-};
-function getMock(cmd){
-  const c=cmd.toLowerCase();
-  if(c.includes('lead'))return MOCK.lead;
-  if(c.includes('page')||c.includes('web'))return MOCK.web;
-  if(c.includes('sms')||c.includes('email')||c.includes('flow'))return MOCK.sms;
-  if(c.includes('pipeline')||c.includes('sales')||c.includes('follow'))return MOCK.pipe;
-  if(c.includes('ops')||c.includes('report')||c.includes('kpi'))return MOCK.ops;
-  if(c.includes('full')||c.includes('launch'))return MOCK.full;
-  return['Director → Processing order...','Crew ▶ Analyzing request...','Crew ▶ Executing in CRM...','Director ✔ Mission complete'];
-}
-
-let agActive={};let taskTimers={};
-
-function activate(key,task){
-  const c=AG[key];
-  const stn=document.getElementById(c.st);
-  const ast=document.getElementById(c.as);
-  const sc=document.getElementById(c.sc);
-  const cs=document.getElementById(c.cs);
-  const ct=document.getElementById(c.ct);
-  // Station glows
-  stn.classList.remove('idle');stn.classList.add('active');
-  ast.classList.remove('idle');ast.classList.add('active');
-  sc.textContent=SCREENS[key][1].join('\n');
-  cs.textContent='WORKING';cs.style.color='var(--red)';
-  ct.textContent=task;
-  agActive[key]=true;
-  // Rotate tasks
-  let ti=0;
-  taskTimers[key]=setInterval(()=>{
-    if(!agActive[key]){clearInterval(taskTimers[key]);return;}
-    ti++;
-    ct.textContent=TASKS[key][ti%TASKS[key].length];
-    sc.textContent=SCREENS[key][(ti%2)+1].join('\n');
-  },2000);
-}
-
-function deactivate(key){
-  const c=AG[key];
-  clearInterval(taskTimers[key]);
-  const stn=document.getElementById(c.st);
-  const ast=document.getElementById(c.as);
-  const sc=document.getElementById(c.sc);
-  const cs=document.getElementById(c.cs);
-  const ct=document.getElementById(c.ct);
-  stn.classList.remove('active');stn.classList.add('idle');
-  ast.classList.remove('active');ast.classList.add('idle');
-  sc.textContent=SCREENS[key][0].join('\n');
-  cs.textContent='IDLE';cs.style.color='var(--green)';
-  ct.textContent='At station.';
-  agActive[key]=false;
-}
-
-function addLine(html){
-  const tb=document.getElementById('termBody');
-  const cursor=document.getElementById('termCursor');
-  const ln=document.createElement('div');
-  ln.className='tln';ln.innerHTML=html;
-  tb.insertBefore(ln,cursor);
-  tb.scrollTop=tb.scrollHeight;
-}
-
-async function runMission(cmd){
-  if(!cmd.trim())return;
-  const keys=Object.keys(AG);
-  addLine('<span class="tp">orbit ›</span> <span style="color:var(--gold2)">» '+cmd.replace(/</g,'&lt;')+'</span>');
-  addLine('<span class="ti">🚀 Mission received — activating crew...</span>');
-
-  // Activate all agents staggered
-  keys.forEach((k,i)=>{
-    setTimeout(()=>{
-      const tasks=TASKS[k];
-      activate(k,tasks[Math.floor(Math.random()*tasks.length)]);
-      addLine('<span class="to">[▶] '+k.toUpperCase()+' on task: '+tasks[0]+'</span>');
-    },i*80);
-  });
-
-  // Try real API, fallback to mock
-  setTimeout(async()=>{
-    addLine('<span style="color:var(--ink3);font-size:9.5px">─── crew pipeline output ───</span>');
-    const mockLines=getMock(cmd);
-    try{
-      const r=await fetch('/api/crew',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({order:cmd}),signal:AbortSignal.timeout(5000)});
-      if(!r.ok)throw new Error('HTTP '+r.status);
-      const reader=r.body.getReader();const dec=new TextDecoder();let buf='';
-      while(true){
-        const{done,value}=await reader.read();if(done)break;
-        buf+=dec.decode(value,{stream:true});
-        const lines=buf.split('\n');buf=lines.pop();
-        for(const line of lines){
-          if(!line.startsWith('data:'))continue;
-          const d=line.slice(5).trim();if(!d||d==='[DONE]')continue;
-          try{const j=JSON.parse(d);const t=j.msg||j.text||j.task||'';if(t)addLine('<span style="color:var(--ink2);font-size:10px">&nbsp;&nbsp;'+t.replace(/</g,'&lt;')+'</span>');}catch(e){}
-        }
-      }
-    }catch(e){
-      for(let i=0;i<mockLines.length;i++){
-        await new Promise(res=>setTimeout(res,350+Math.random()*250));
-        const cls=mockLines[i].includes('✔')?'to':mockLines[i].includes('›')?'ti':'';
-        addLine('<span class="'+(cls||'tln')+'" style="font-size:10px">&nbsp;&nbsp;'+mockLines[i]+'</span>');
-      }
-    }
-    addLine('<span class="to">✔ Mission complete. Crew returning to standby.</span>');
-    setTimeout(()=>{keys.forEach(k=>deactivate(k));},1200);
-  },700);
-}
-
-// CHIPS
-document.getElementById('chips').addEventListener('click',e=>{
-  const chip=e.target.closest('[data-cmd]');if(!chip)return;
-  document.getElementById('cmdInput').value=chip.dataset.cmd;
-  chip.classList.add('active');setTimeout(()=>chip.classList.remove('active'),250);
-  runMission(chip.dataset.cmd);
-});
-// RUN BTN
-document.getElementById('runBtn').addEventListener('click',()=>{
-  const cmd=document.getElementById('cmdInput').value.trim();
-  if(cmd)runMission(cmd);
-  else{const c=['Find 100 businesses that need websites','Full launch: CRM + leads + site','Generate weekly ops report'];runMission(c[Math.floor(Math.random()*c.length)]);}
-});
-// ENTER
-document.getElementById('cmdInput').addEventListener('keydown',e=>{
-  if(e.key==='Enter'){runMission(e.target.value);e.target.value='';}
-});
+// Boot message
+out('mut','Orbit Mission Deck online — 6-agent crew at stations.');
+out('mut','Select a chip or type a mission order to dispatch the crew.');
+row('<span class="prompt">orbit &#10095; </span><span class="cur"></span>');
+})();
 </script>
 </body>
-    </html>
+  </html>

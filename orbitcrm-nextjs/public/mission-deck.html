@@ -9,704 +9,432 @@
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
 <style>
 :root{
-  --bg:#04080f;--hull:#060d18;--hull2:#0a1526;--panel:#091322;
-  --red:#e8303a;--rs:#ff5d66;--amber:#f4b942;--teal:#00e5ff;
-  --green:#36d399;--violet:#a78bfa;--pink:#f472b6;--orange:#fb923c;
+  --bg:#030a12;--hull:#05101e;--panel:#071628;
+  --red:#e8303a;--rs:#ff5d66;--teal:#00e5ff;--green:#36d399;
+  --amber:#f4b942;--violet:#a78bfa;--pink:#f472b6;--orange:#fb923c;
   --ice:#7dd3fc;--gold:#f0c96b;
-  --ink:#e8f4ff;--dim:#7a9ab8;--faint:#3a5a78;
-  --glow-r:0 0 20px #e8303a88,0 0 60px #e8303a33;
-  --glow-c:0 0 20px #00e5ff88,0 0 60px #00e5ff22;
-  --glow-g:0 0 15px #36d39966;
+  --ink:#dff0ff;--dim:#5a8aaa;--faint:#2a4a6a;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{background:var(--bg);color:var(--ink);font-family:'Orbitron',monospace;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+html,body{background:var(--bg);color:var(--ink);font-family:'Orbitron',monospace;-webkit-font-smoothing:antialiased}
 body{min-height:100dvh}
-.page{max-width:1280px;margin:0 auto;padding:12px 16px 32px}
+.page{max-width:1300px;margin:0 auto;padding:10px 14px 28px}
 
-/* TOP BAR */
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;background:linear-gradient(180deg,#0d1f35,#060d18);border-bottom:1px solid #1a3050;margin-bottom:12px}
-.topbar-logo{font-size:18px;font-weight:900;letter-spacing:.15em;color:var(--teal);text-shadow:var(--glow-c)}
-.topbar-title{font-size:9px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase}
-.topbar-status{display:flex;gap:16px;align-items:center;font-family:'JetBrains Mono',monospace;font-size:10px}
-.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px}
-.s-green{background:var(--green);box-shadow:var(--glow-g)}
-.s-amber{background:var(--amber)}
-.s-red{background:var(--red);box-shadow:var(--glow-r);animation:blink 1.2s steps(1) infinite}
-@keyframes blink{50%{opacity:.2}}
-#clock{color:var(--teal);letter-spacing:.12em}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:8px 18px;background:linear-gradient(180deg,#0a1e36,#040e1c);border-bottom:1px solid #0e2840;margin-bottom:10px;border-radius:6px}
+.tl{font-size:17px;font-weight:900;letter-spacing:.15em;color:var(--teal);text-shadow:0 0 18px #00e5ff88}
+.ts{font-size:8px;letter-spacing:.2em;color:var(--dim);margin-top:2px}
+.tr{display:flex;gap:14px;align-items:center;font-family:'JetBrains Mono',monospace;font-size:10px}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:4px}
+.dg{background:var(--green);box-shadow:0 0 8px var(--green)}
+.da{background:var(--amber)}
+.dr{background:var(--red);box-shadow:0 0 8px var(--red);animation:bl 1.1s steps(1) infinite}
+@keyframes bl{50%{opacity:.15}}
+#clk{color:var(--teal);letter-spacing:.1em}
 
-/* COCKPIT VIEWPORT */
-.cockpit{position:relative;width:100%;background:var(--hull);border:1px solid #1a3050;border-radius:8px;overflow:hidden;margin-bottom:12px}
-.cockpit svg{width:100%;display:block}
+.ship-wrap{background:var(--hull);border:1px solid #0e2840;border-radius:8px;overflow:hidden;margin-bottom:10px;position:relative}
+.ship-wrap svg{width:100%;display:block}
 
-/* TERMINAL */
-.terminal-wrap{background:#020810;border:1px solid #1a3050;border-radius:8px;overflow:hidden;margin-bottom:12px}
-.term-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:#050f1c;border-bottom:1px solid #1a3050}
-.term-bar .tdots{display:flex;gap:5px}.term-bar .tdots i{width:10px;height:10px;border-radius:50%}
-.term-bar .tdots i:nth-child(1){background:#ff5f57}.term-bar .tdots i:nth-child(2){background:#febc2e}.term-bar .tdots i:nth-child(3){background:#28c840}
-.term-bar .tlbl{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.15em;color:var(--faint);text-transform:uppercase;margin-left:4px}
-.term-body{height:220px;overflow-y:auto;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.65;background:#020810}
-.term-body::-webkit-scrollbar{width:6px}.term-body::-webkit-scrollbar-thumb{background:#1a3050;border-radius:3px}
-.ln{display:flex;gap:8px;white-space:pre-wrap;word-break:break-word;animation:fadein .18s ease}
-@keyframes fadein{from{opacity:0}}
-.prompt{color:var(--rs)}.cmd{color:var(--ink)}.ok{color:var(--green)}.warn{color:var(--amber)}.info{color:var(--teal)}.mut{color:var(--dim)}.file{color:var(--violet)}.add{color:var(--green)}.del{color:#ff7a82}.bar{color:var(--red)}.hdr{color:var(--faint)}
-.cur{display:inline-block;width:7px;height:13px;background:var(--red);vertical-align:-2px;animation:cur 1s steps(1) infinite}
-@keyframes cur{50%{opacity:0}}
+.term-wrap{background:#020910;border:1px solid #0e2840;border-radius:8px;overflow:hidden;margin-bottom:10px}
+.tbar{display:flex;align-items:center;gap:7px;padding:7px 12px;background:#030d1c;border-bottom:1px solid #0e2840}
+.tdots{display:flex;gap:5px}.tdots i{width:9px;height:9px;border-radius:50%}
+.tdots i:nth-child(1){background:#ff5f57}.tdots i:nth-child(2){background:#febc2e}.tdots i:nth-child(3){background:#28c840}
+.tlbl{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.15em;color:var(--faint);text-transform:uppercase}
+.tbody{height:200px;overflow-y:auto;padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.7;background:#020910}
+.tbody::-webkit-scrollbar{width:5px}.tbody::-webkit-scrollbar-thumb{background:#0e2840;border-radius:3px}
+.ln{display:flex;gap:6px;white-space:pre-wrap;word-break:break-word;animation:fi .16s ease}
+@keyframes fi{from{opacity:0}}
+.pr{color:var(--rs)}.cm{color:var(--ink)}.ok{color:var(--green)}.wa{color:var(--amber)}.in{color:var(--teal)}.mu{color:var(--dim)}.fi{color:var(--violet)}.ad{color:var(--green)}.de{color:#ff7a82}.ba{color:var(--red)}.hd{color:var(--faint)}
+.cur{display:inline-block;width:6px;height:12px;background:var(--red);vertical-align:-2px;animation:cu 1s steps(1) infinite}
+@keyframes cu{50%{opacity:0}}
 
-/* CONTROLS */
-.ctrl{background:var(--panel);border:1px solid #1a3050;border-radius:8px;padding:14px}
-.ctrl-lbl{font-size:7px;letter-spacing:.2em;color:var(--faint);text-transform:uppercase;margin-bottom:10px}
-.ctrl-row{display:flex;gap:8px}
-.ctrl-input{flex:1;background:#030b16;border:1px solid #1a3050;border-radius:6px;color:var(--ink);font-family:'JetBrains Mono',monospace;font-size:13px;padding:12px 14px}
-.ctrl-input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 2px #00e5ff22}
-.ctrl-input::placeholder{color:var(--faint)}
-.run-btn{background:linear-gradient(180deg,var(--red),#9a0f17);border:none;border-radius:6px;padding:0 22px;color:#fff;font-family:'Orbitron',monospace;font-size:10px;font-weight:700;letter-spacing:.1em;cursor:pointer;white-space:nowrap;box-shadow:var(--glow-r)}
-.run-btn:disabled{filter:grayscale(.7);box-shadow:none;cursor:not-allowed}
-.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
-.chip{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);background:#040c1a;border:1px solid #1a3050;border-radius:6px;padding:7px 12px;cursor:pointer;transition:border-color .15s,color .15s}
+.ctrl{background:var(--panel);border:1px solid #0e2840;border-radius:8px;padding:12px}
+.clbl{font-size:7px;letter-spacing:.2em;color:var(--faint);text-transform:uppercase;margin-bottom:8px}
+.crow{display:flex;gap:8px}
+.cinp{flex:1;background:#020b18;border:1px solid #0e2840;border-radius:6px;color:var(--ink);font-family:'JetBrains Mono',monospace;font-size:13px;padding:11px 13px}
+.cinp:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 2px #00e5ff1a}
+.cinp::placeholder{color:var(--faint)}
+.rbtn{background:linear-gradient(180deg,#d42030,#8a0f18);border:none;border-radius:6px;padding:0 20px;color:#fff;font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:.1em;cursor:pointer;white-space:nowrap;box-shadow:0 0 16px #e8303a55}
+.rbtn:disabled{filter:grayscale(.7);box-shadow:none;cursor:not-allowed}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.chip{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);background:#030c1c;border:1px solid #0e2840;border-radius:5px;padding:6px 11px;cursor:pointer;transition:border-color .12s,color .12s}
 .chip:hover{border-color:var(--teal);color:var(--ink)}
+.foot{text-align:center;margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.13em;color:var(--faint);text-transform:uppercase}
 
-.footer{text-align:center;margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.15em;color:var(--faint);text-transform:uppercase}
-
-/* Zzz */
 .zzz text{opacity:0}
-.sleeping .zz1{animation:zf 2.4s ease-in-out infinite}
-.sleeping .zz2{animation:zf 2.4s ease-in-out infinite .6s}
-.sleeping .zz3{animation:zf 2.4s ease-in-out infinite 1.2s}
-@keyframes zf{0%{opacity:0;transform:translate(0,0)}30%{opacity:.9}100%{opacity:0;transform:translate(5px,-12px)}}
-
-/* Active agent glow */
-.agent-active .screen-main{fill:var(--red)!important}
-.agent-active .visor{fill-opacity:.95!important}
+.sleeping .zz1{animation:zf 2.2s ease-in-out infinite}
+.sleeping .zz2{animation:zf 2.2s ease-in-out infinite .55s}
+.sleeping .zz3{animation:zf 2.2s ease-in-out infinite 1.1s}
+@keyframes zf{0%{opacity:0;transform:translate(0,0)}30%{opacity:.9}100%{opacity:0;transform:translate(4px,-11px)}}
 </style>
-</head>
-<body>
-<div class="page">
+</head><body><div class="page">
 <div class="topbar">
-  <div>
-    <div class="topbar-logo">&#9651; ORBIT</div>
-    <div class="topbar-title">Mission Command Vessel &middot; Deck A</div>
-  </div>
-  <div class="topbar-status">
-    <span><span class="status-dot s-green"></span>ENGINES</span>
-    <span><span class="status-dot s-green"></span>SHIELDS</span>
-    <span><span class="status-dot s-amber"></span>COMMS</span>
-    <span id="clock">00:00:00</span>
-    <span id="pill-status"><span class="status-dot s-green" id="dled"></span><span id="pill">CREW READY</span></span>
+  <div><div class="tl">&#9651; ORBIT</div><div class="ts">MISSION COMMAND VESSEL &middot; DECK A</div></div>
+  <div class="tr">
+    <span><span class="dot dg"></span>ENGINES</span>
+    <span><span class="dot dg"></span>SHIELDS</span>
+    <span><span class="dot da"></span>COMMS</span>
+    <span id="clk">--:--:--</span>
+    <span><span class="dot dg" id="dled"></span><span id="pill">CREW READY</span></span>
   </div>
 </div>
-
-<div class="cockpit"><svg id="scene" viewBox="0 0 900 460" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="floorGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#0a1828"/>
-      <stop offset="100%" stop-color="#04080f"/>
-    </linearGradient>
-    <linearGradient id="ceilGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#0d2040"/>
-      <stop offset="100%" stop-color="#091428"/>
-    </linearGradient>
-    <radialGradient id="vportGlow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#00e5ff" stop-opacity=".08"/>
-      <stop offset="100%" stop-color="#00e5ff" stop-opacity="0"/>
-    </radialGradient>
-    <filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feComposite in="SourceGraphic" in2="blur" operator="over"/></filter>
-  </defs>
-  
-  <!-- BACKGROUND - ship interior -->
-  <rect width="900" height="460" fill="url(#floorGrad)"/>
-  
-  <!-- CEILING hull -->
-  <rect x="0" y="0" width="900" height="100" fill="url(#ceilGrad)"/>
-  <!-- ceiling panels -->
-  <rect x="0" y="0" width="900" height="5" fill="#1a3a60"/>
-  <rect x="0" y="5" width="900" height="2" fill="#00e5ff" opacity=".3"/>
-  <rect x="0" y="7" width="110" height="88" rx="4" fill="#060e1c" stroke="#1a3050" stroke-width="1"/><rect x="115" y="7" width="110" height="88" rx="4" fill="#060e1c" stroke="#1a3050" stroke-width="1"/><rect x="230" y="7" width="110" height="88" rx="4" fill="#060e1c" stroke="#1a3050" stroke-width="1"/><rect x="345" y="7" width="110" height="88" rx="4" fill="#060e1c" stroke="#1a3050" stroke-width="1"/><rect x="460" y="7" width="110" height="88" rx="4" fill="#060e1c" stroke="#1a3050" stroke-width="1"/><rect x="575" y="7" width="110" height="88" rx="4" fill="#060e1c" stroke="#1a3050" stroke-width="1"/><rect x="690" y="7" width="110" height="88" rx="4" fill="#060e1c" stroke="#1a3050" stroke-width="1"/><rect x="805" y="7" width="110" height="88" rx="4" fill="#060e1c" stroke="#1a3050" stroke-width="1"/>
-  <!-- ceiling lights -->
-  <ellipse cx="75" cy="95" rx="55" ry="30" fill="#00e5ff" opacity=".05"/><line x1="75" y1="7" x2="75" y2="20" stroke="#00e5ff" stroke-width="1.5" opacity=".5"/><rect x="69" y="18" width="12" height="4" rx="2" fill="#00e5ff" opacity=".7"/><ellipse cx="225" cy="95" rx="55" ry="30" fill="#00e5ff" opacity=".05"/><line x1="225" y1="7" x2="225" y2="20" stroke="#00e5ff" stroke-width="1.5" opacity=".5"/><rect x="219" y="18" width="12" height="4" rx="2" fill="#00e5ff" opacity=".7"/><ellipse cx="375" cy="95" rx="55" ry="30" fill="#00e5ff" opacity=".05"/><line x1="375" y1="7" x2="375" y2="20" stroke="#00e5ff" stroke-width="1.5" opacity=".5"/><rect x="369" y="18" width="12" height="4" rx="2" fill="#00e5ff" opacity=".7"/><ellipse cx="525" cy="95" rx="55" ry="30" fill="#00e5ff" opacity=".05"/><line x1="525" y1="7" x2="525" y2="20" stroke="#00e5ff" stroke-width="1.5" opacity=".5"/><rect x="519" y="18" width="12" height="4" rx="2" fill="#00e5ff" opacity=".7"/><ellipse cx="675" cy="95" rx="55" ry="30" fill="#00e5ff" opacity=".05"/><line x1="675" y1="7" x2="675" y2="20" stroke="#00e5ff" stroke-width="1.5" opacity=".5"/><rect x="669" y="18" width="12" height="4" rx="2" fill="#00e5ff" opacity=".7"/><ellipse cx="825" cy="95" rx="55" ry="30" fill="#00e5ff" opacity=".05"/><line x1="825" y1="7" x2="825" y2="20" stroke="#00e5ff" stroke-width="1.5" opacity=".5"/><rect x="819" y="18" width="12" height="4" rx="2" fill="#00e5ff" opacity=".7"/>
-  
-  <!-- SPACE VIEWPORT - big arched window at top -->
-  <rect x="50" y="10" width="800" height="90" rx="8" fill="#020812" stroke="#1a4060" stroke-width="2"/>
-  <rect x="52" y="12" width="796" height="86" rx="7" fill="#020812"/>
-  <!-- Viewport glow -->
-  <rect x="50" y="10" width="800" height="90" rx="8" fill="url(#vportGlow)"/>
-  <!-- Stars inside viewport -->
-  <circle cx="539.3" cy="32.3" r="0.6" fill="#fff" opacity="0.68"/><circle cx="246.8" cy="13.3" r="0.6" fill="#fff" opacity="0.32"/><circle cx="96.0" cy="11.3" r="0.6" fill="#fff" opacity="0.51"/><circle cx="650.3" cy="94.7" r="1.3" fill="#fff" opacity="0.87"/><circle cx="302.8" cy="78.5" r="1.3" fill="#fff" opacity="0.67"/><circle cx="195.1" cy="85.4" r="0.6" fill="#fff" opacity="0.52"/><circle cx="293.6" cy="62.8" r="0.6" fill="#fff" opacity="0.88"/><circle cx="436.3" cy="35.3" r="0.6" fill="#fff" opacity="0.43"/><circle cx="83.0" cy="64.5" r="1.3" fill="#fff" opacity="0.36"/><circle cx="722.0" cy="68.0" r="0.6" fill="#fff" opacity="0.64"/><circle cx="690.1" cy="52.9" r="1.3" fill="#fff" opacity="0.88"/><circle cx="339.6" cy="9.6" r="0.6" fill="#fff" opacity="0.75"/><circle cx="216.0" cy="87.5" r="0.6" fill="#fff" opacity="0.48"/><circle cx="766.9" cy="94.7" r="1.3" fill="#fff" opacity="0.67"/><circle cx="460.4" cy="65.4" r="0.6" fill="#fff" opacity="0.82"/><circle cx="568.5" cy="64.4" r="0.6" fill="#fff" opacity="0.65"/><circle cx="561.2" cy="21.2" r="0.6" fill="#fff" opacity="0.71"/><circle cx="601.0" cy="32.3" r="0.6" fill="#fff" opacity="0.60"/><circle cx="235.9" cy="86.7" r="0.6" fill="#fff" opacity="0.77"/><circle cx="757.9" cy="46.4" r="0.6" fill="#fff" opacity="0.84"/><circle cx="390.7" cy="32.3" r="0.6" fill="#fff" opacity="0.32"/><circle cx="312.2" cy="72.8" r="0.6" fill="#fff" opacity="0.87"/><circle cx="767.6" cy="80.2" r="0.6" fill="#fff" opacity="0.48"/><circle cx="701.2" cy="25.5" r="0.6" fill="#fff" opacity="0.52"/><circle cx="96.2" cy="33.8" r="0.6" fill="#fff" opacity="0.68"/><circle cx="252.8" cy="15.7" r="1.3" fill="#fff" opacity="0.32"/><circle cx="768.7" cy="42.1" r="0.6" fill="#fff" opacity="0.32"/><circle cx="304.9" cy="93.1" r="0.6" fill="#fff" opacity="0.38"/><circle cx="805.9" cy="23.9" r="0.6" fill="#fff" opacity="0.74"/><circle cx="390.3" cy="38.9" r="0.6" fill="#fff" opacity="0.42"/><circle cx="800.3" cy="72.6" r="0.6" fill="#fff" opacity="0.41"/><circle cx="53.2" cy="96.3" r="0.6" fill="#fff" opacity="0.47"/><circle cx="273.0" cy="72.6" r="0.6" fill="#fff" opacity="0.80"/><circle cx="732.5" cy="39.1" r="0.6" fill="#fff" opacity="0.50"/><circle cx="423.9" cy="57.1" r="0.6" fill="#fff" opacity="0.86"/><circle cx="729.7" cy="40.8" r="0.6" fill="#fff" opacity="0.93"/><circle cx="733.3" cy="75.0" r="0.6" fill="#fff" opacity="0.47"/><circle cx="582.6" cy="87.6" r="0.6" fill="#fff" opacity="0.43"/><circle cx="342.3" cy="25.9" r="0.6" fill="#fff" opacity="0.81"/><circle cx="792.6" cy="84.0" r="0.6" fill="#fff" opacity="0.83"/><circle cx="573.8" cy="83.4" r="0.6" fill="#fff" opacity="0.35"/><circle cx="686.6" cy="12.5" r="0.6" fill="#fff" opacity="0.93"/><circle cx="276.6" cy="77.2" r="0.6" fill="#fff" opacity="0.40"/><circle cx="690.8" cy="66.6" r="0.6" fill="#fff" opacity="0.71"/><circle cx="415.2" cy="27.3" r="0.6" fill="#fff" opacity="0.38"/><circle cx="801.1" cy="58.8" r="0.6" fill="#fff" opacity="0.33"/><circle cx="325.3" cy="23.4" r="0.6" fill="#fff" opacity="0.55"/><circle cx="128.4" cy="11.9" r="1.3" fill="#fff" opacity="0.87"/><circle cx="263.5" cy="12.2" r="0.6" fill="#fff" opacity="0.55"/><circle cx="301.2" cy="22.4" r="0.6" fill="#fff" opacity="0.46"/><circle cx="585.7" cy="47.1" r="0.6" fill="#fff" opacity="0.73"/><circle cx="446.8" cy="12.4" r="0.6" fill="#fff" opacity="0.59"/><circle cx="253.2" cy="45.4" r="0.6" fill="#fff" opacity="0.31"/><circle cx="357.3" cy="35.0" r="0.6" fill="#fff" opacity="0.78"/><circle cx="505.0" cy="69.7" r="0.6" fill="#fff" opacity="0.89"/><circle cx="223.8" cy="32.7" r="0.6" fill="#fff" opacity="0.39"/><circle cx="473.9" cy="49.0" r="0.6" fill="#fff" opacity="0.43"/><circle cx="627.3" cy="12.7" r="1.3" fill="#fff" opacity="0.32"/><circle cx="447.5" cy="79.2" r="1.3" fill="#fff" opacity="0.46"/><circle cx="252.0" cy="64.4" r="0.6" fill="#fff" opacity="0.68"/><circle cx="226.6" cy="54.5" r="1.3" fill="#fff" opacity="0.42"/><circle cx="415.0" cy="61.2" r="0.6" fill="#fff" opacity="0.49"/><circle cx="775.3" cy="74.5" r="0.6" fill="#fff" opacity="0.67"/><circle cx="658.2" cy="51.0" r="1.3" fill="#fff" opacity="0.41"/><circle cx="265.2" cy="11.6" r="0.6" fill="#fff" opacity="0.57"/><circle cx="516.1" cy="32.3" r="0.6" fill="#fff" opacity="0.92"/><circle cx="785.2" cy="16.3" r="0.6" fill="#fff" opacity="0.54"/><circle cx="473.3" cy="52.5" r="1.3" fill="#fff" opacity="0.62"/><circle cx="562.4" cy="63.1" r="0.6" fill="#fff" opacity="0.38"/><circle cx="339.6" cy="90.8" r="1.3" fill="#fff" opacity="0.79"/><circle cx="138.7" cy="32.6" r="0.6" fill="#fff" opacity="0.51"/><circle cx="800.0" cy="91.2" r="1.3" fill="#fff" opacity="0.35"/><circle cx="252.6" cy="54.6" r="0.6" fill="#fff" opacity="0.65"/><circle cx="804.8" cy="72.0" r="0.6" fill="#fff" opacity="0.70"/><circle cx="479.0" cy="76.7" r="0.6" fill="#fff" opacity="0.73"/><circle cx="160.1" cy="29.8" r="0.6" fill="#fff" opacity="0.60"/><circle cx="265.2" cy="22.5" r="0.6" fill="#fff" opacity="0.85"/><circle cx="828.5" cy="51.1" r="0.6" fill="#fff" opacity="0.90"/><circle cx="398.0" cy="73.0" r="0.6" fill="#fff" opacity="0.57"/><circle cx="791.1" cy="25.3" r="0.6" fill="#fff" opacity="0.51"/><circle cx="652.7" cy="33.0" r="1.3" fill="#fff" opacity="0.72"/><circle cx="812.5" cy="9.8" r="0.6" fill="#fff" opacity="0.58"/><circle cx="744.4" cy="62.1" r="0.6" fill="#fff" opacity="0.45"/><circle cx="721.1" cy="95.3" r="0.6" fill="#fff" opacity="0.44"/><circle cx="212.7" cy="17.5" r="1.3" fill="#fff" opacity="0.44"/><circle cx="556.1" cy="53.4" r="0.6" fill="#fff" opacity="0.86"/><circle cx="196.6" cy="80.2" r="0.6" fill="#fff" opacity="0.34"/><circle cx="538.2" cy="49.3" r="0.6" fill="#fff" opacity="0.94"/><circle cx="484.0" cy="76.1" r="1.3" fill="#fff" opacity="0.32"/><circle cx="378.8" cy="25.0" r="0.6" fill="#fff" opacity="0.35"/><circle cx="199.5" cy="38.2" r="0.6" fill="#fff" opacity="0.73"/><circle cx="758.7" cy="78.1" r="0.6" fill="#fff" opacity="0.86"/><circle cx="453.6" cy="32.1" r="0.6" fill="#fff" opacity="0.32"/><circle cx="508.2" cy="75.3" r="1.3" fill="#fff" opacity="0.64"/><circle cx="470.3" cy="11.5" r="0.6" fill="#fff" opacity="0.84"/><circle cx="212.4" cy="56.3" r="0.6" fill="#fff" opacity="0.91"/><circle cx="142.1" cy="18.8" r="0.6" fill="#fff" opacity="0.55"/><circle cx="449.7" cy="82.2" r="0.6" fill="#fff" opacity="0.59"/><circle cx="167.3" cy="65.6" r="1.3" fill="#fff" opacity="0.34"/><circle cx="685.6" cy="66.3" r="0.6" fill="#fff" opacity="0.50"/><circle cx="678.8" cy="47.8" r="0.6" fill="#fff" opacity="0.84"/><circle cx="396.5" cy="88.8" r="0.6" fill="#fff" opacity="0.60"/><circle cx="133.3" cy="90.9" r="0.6" fill="#fff" opacity="0.58"/><circle cx="594.3" cy="13.3" r="0.6" fill="#fff" opacity="0.43"/><circle cx="98.4" cy="89.1" r="0.6" fill="#fff" opacity="0.35"/><circle cx="744.4" cy="26.1" r="0.6" fill="#fff" opacity="0.31"/><circle cx="230.2" cy="64.8" r="0.6" fill="#fff" opacity="0.62"/><circle cx="347.9" cy="62.4" r="0.6" fill="#fff" opacity="0.62"/><circle cx="451.3" cy="56.8" r="0.6" fill="#fff" opacity="0.84"/><circle cx="333.7" cy="68.7" r="0.6" fill="#fff" opacity="0.40"/><circle cx="362.2" cy="65.5" r="0.6" fill="#fff" opacity="0.90"/><circle cx="835.0" cy="63.1" r="0.6" fill="#fff" opacity="0.38"/><circle cx="57.0" cy="39.2" r="0.6" fill="#fff" opacity="0.62"/><circle cx="618.0" cy="21.2" r="0.6" fill="#fff" opacity="0.71"/><circle cx="573.5" cy="71.8" r="0.6" fill="#fff" opacity="0.62"/><circle cx="133.7" cy="75.4" r="0.6" fill="#fff" opacity="0.55"/><circle cx="455.1" cy="33.2" r="0.6" fill="#fff" opacity="0.75"/><circle cx="758.2" cy="55.1" r="1.3" fill="#fff" opacity="0.72"/><circle cx="743.7" cy="21.2" r="0.6" fill="#fff" opacity="0.73"/><circle cx="539.0" cy="25.3" r="0.6" fill="#fff" opacity="0.35"/><circle cx="180" cy="45" r="2.5" fill="#00e5ff" opacity=".7"/><circle cx="640" cy="30" r="2" fill="#f0c96b" opacity=".6"/><circle cx="820" cy="60" r="2" fill="#a78bfa" opacity=".7"/><ellipse cx="300" cy="55" rx="80" ry="30" fill="#00e5ff" opacity=".04"/><ellipse cx="680" cy="40" rx="90" ry="35" fill="#a78bfa" opacity=".04"/><circle cx="750" cy="55" r="22" fill="#1a3a6a" opacity=".8"/><circle cx="744" cy="48" r="8" fill="#2a4a8a" opacity=".6"/><ellipse cx="750" cy="55" rx="32" ry="8" fill="none" stroke="#4a6a9a" stroke-width="1.5" opacity=".5"/>
-  <!-- Viewport frame bolts -->
-  <circle cx="98" cy="10" r="3" fill="#1a3050" stroke="#2a4a6a" stroke-width="1"/><circle cx="98" cy="100" r="3" fill="#1a3050" stroke="#2a4a6a" stroke-width="1"/><circle cx="194" cy="10" r="3" fill="#1a3050" stroke="#2a4a6a" stroke-width="1"/><circle cx="194" cy="100" r="3" fill="#1a3050" stroke="#2a4a6a" stroke-width="1"/><circle cx="290" cy="10" r="3" fill="#1a3050" stroke="#2a4a6a" stroke-width="1"/><circle cx="290" cy="100" r="3" fill="#1a3050" stroke="#2a4a6a" stroke-width="1"/><circle cx="386" cy="10" r="3" fill="#1a3050" stroke="#2a4a6a" stroke-width="1"/><circle cx="386" cy="100" r="3" fill="#1a3050" stroke="#2a4a6a" stroke-width="1"/><circle cx="490.00000000000006" cy="10" r="3" fill="#1a3050" stroke="#2a4a6a" stroke-width="1"/><circle cx="490.00000000000006" cy="100" r="3" fill="#1a3050" stroke="#2a4a6a" stroke-width="1"/><circle cx="586" cy="10" r="3" fill="#1a3050" stroke="#2a4a6a" stroke-width="1"/><circle cx="586" cy="100" r="3" fill="#1a3050" stroke="#2a4a6a" stroke-width="1"/><circle cx="682" cy="10" r="3" fill="#1a3050" stroke="#2a4a6a" stroke-width="1"/><circle cx="682" cy="100" r="3" fill="#1a3050" stroke="#2a4a6a" stroke-width="1"/><circle cx="786" cy="10" r="3" fill="#1a3050" stroke="#2a4a6a" stroke-width="1"/><circle cx="786" cy="100" r="3" fill="#1a3050" stroke="#2a4a6a" stroke-width="1"/>
-  <!-- Viewport dividers (frame bars) -->
-  <line x1="350" y1="10" x2="350" y2="100" stroke="#1a4060" stroke-width="2.5" opacity=".6"/>
-  <line x1="550" y1="10" x2="550" y2="100" stroke="#1a4060" stroke-width="2.5" opacity=".6"/>
-  
-  <!-- SIDE WALL PANELS -->
-  <!-- Left wall -->
-  <rect x="0" y="100" width="28" height="360" fill="#060d18" stroke="#1a3050" stroke-width="1"/>
-  <rect x="4" y="120" width="20" height="60" rx="3" fill="#0a1828"/>
-  <rect x="7" y="125" width="14" height="3" rx="1" fill="#36d399" opacity=".7"/><rect x="7" y="133" width="14" height="3" rx="1" fill="#f4b942" opacity=".7"/><rect x="7" y="141" width="14" height="3" rx="1" fill="#00e5ff" opacity=".7"/><rect x="7" y="149" width="14" height="3" rx="1" fill="#a78bfa" opacity=".7"/><rect x="7" y="157" width="14" height="3" rx="1" fill="#fb923c" opacity=".7"/><rect x="7" y="165" width="14" height="3" rx="1" fill="#e8303a" opacity=".7"/>
-  <!-- Right wall -->  
-  <rect x="872" y="100" width="28" height="360" fill="#060d18" stroke="#1a3050" stroke-width="1"/>
-  <rect x="876" y="120" width="20" height="60" rx="3" fill="#0a1828"/>
-  <rect x="879" y="125" width="14" height="3" rx="1" fill="#7dd3fc" opacity=".7"/><rect x="879" y="133" width="14" height="3" rx="1" fill="#f472b6" opacity=".7"/><rect x="879" y="141" width="14" height="3" rx="1" fill="#fb923c" opacity=".7"/><rect x="879" y="149" width="14" height="3" rx="1" fill="#a78bfa" opacity=".7"/><rect x="879" y="157" width="14" height="3" rx="1" fill="#00e5ff" opacity=".7"/><rect x="879" y="165" width="14" height="3" rx="1" fill="#36d399" opacity=".7"/>
-  
-  <!-- FLOOR GRID -->
-  <line x1="28" y1="395" x2="872" y2="395" stroke="#1a3050" stroke-width=".5" opacity="0.8"/><line x1="28" y1="403" x2="872" y2="403" stroke="#1a3050" stroke-width=".5" opacity="0.7"/><line x1="28" y1="411" x2="872" y2="411" stroke="#1a3050" stroke-width=".5" opacity="0.6"/><line x1="28" y1="419" x2="872" y2="419" stroke="#1a3050" stroke-width=".5" opacity="0.5"/><line x1="28" y1="427" x2="872" y2="427" stroke="#1a3050" stroke-width=".5" opacity="0.4"/><line x1="28" y1="435" x2="872" y2="435" stroke="#1a3050" stroke-width=".5" opacity="0.3"/><line x1="28" y1="443" x2="872" y2="443" stroke="#1a3050" stroke-width=".5" opacity="0.2"/><line x1="28" y1="451" x2="872" y2="451" stroke="#1a3050" stroke-width=".5" opacity="0.1"/>
-  <line x1="50" y1="395" x2="50" y2="460" stroke="#1a3050" stroke-width=".5" opacity=".4"/><line x1="140" y1="395" x2="140" y2="460" stroke="#1a3050" stroke-width=".5" opacity=".4"/><line x1="230" y1="395" x2="230" y2="460" stroke="#1a3050" stroke-width=".5" opacity=".4"/><line x1="320" y1="395" x2="320" y2="460" stroke="#1a3050" stroke-width=".5" opacity=".4"/><line x1="410" y1="395" x2="410" y2="460" stroke="#1a3050" stroke-width=".5" opacity=".4"/><line x1="500" y1="395" x2="500" y2="460" stroke="#1a3050" stroke-width=".5" opacity=".4"/><line x1="590" y1="395" x2="590" y2="460" stroke="#1a3050" stroke-width=".5" opacity=".4"/><line x1="680" y1="395" x2="680" y2="460" stroke="#1a3050" stroke-width=".5" opacity=".4"/><line x1="770" y1="395" x2="770" y2="460" stroke="#1a3050" stroke-width=".5" opacity=".4"/><line x1="860" y1="395" x2="860" y2="460" stroke="#1a3050" stroke-width=".5" opacity=".4"/>
-  <!-- Floor edge accent -->
-  <rect x="28" y="393" width="844" height="2" fill="#00e5ff" opacity=".15"/>
-  
-  <!-- DIVIDER between ceiling and stations -->
-  <rect x="28" y="105" width="844" height="3" fill="#1a3050"/>
-  <rect x="28" y="105" width="844" height="1" fill="#00e5ff" opacity=".3"/>
-  
-  <!-- STATUS STRIP below viewport -->
-  <rect x="28" y="108" width="844" height="32" fill="#050d1c"/>
-  <text x="50" y="128" fill="#00e5ff" font-family="'JetBrains Mono'" font-size="10" opacity=".7">SYS: NOMINAL</text>
-  <text x="220" y="128" fill="#36d399" font-family="'JetBrains Mono'" font-size="10" opacity=".7">ORBIT: STABLE</text>
-  <text x="400" y="128" fill="#f0c96b" font-family="'JetBrains Mono'" font-size="10" opacity=".7">CREW: 6 ACTIVE</text>
-  <text x="600" y="128" fill="#a78bfa" font-family="'JetBrains Mono'" font-size="10" opacity=".7">AI: ONLINE</text>
-  <rect x="28" y="140" width="844" height="1" fill="#1a3050"/>
-  
-  <!-- STATIONS -->
-  
-    <g class="station" id="station-nova">
-      <!-- console base -->
-      <rect x="30" y="215.5" width="220" height="49.5" rx="4" fill="#0a1220" stroke="#f0c96b44" stroke-width="1"/>
-      <!-- console top surface (angled panel) -->
-      <polygon points="34,188 246,188 250,215.5 30,215.5" fill="#0d1e30" stroke="#f0c96b55" stroke-width="1"/>
-      <!-- main screen -->
-      <rect x="38" y="159" width="204" height="29" rx="3" fill="#020810" stroke="#f0c96b66" stroke-width="1.5" id="scr-nova"/>
-      <!-- screen inner glow base -->
-      <rect x="41" y="162" width="198" height="23" rx="2" fill="#0a0f18" id="scr-nova-inner"/>
-      <!-- screen scanlines -->
-      <line x1="41" y1="162" x2="239" y2="162" stroke="#f0c96b18" stroke-width=".5"/><line x1="41" y1="168" x2="239" y2="168" stroke="#f0c96b18" stroke-width=".5"/><line x1="41" y1="174" x2="239" y2="174" stroke="#f0c96b18" stroke-width=".5"/><line x1="41" y1="180" x2="239" y2="180" stroke="#f0c96b18" stroke-width=".5"/>
-      <!-- keyboard strip -->
-      <rect x="40" y="219.5" width="200" height="8" rx="2" fill="#060e1c"/>
-      <rect x="42" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="70" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="98" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="126" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="154" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="182" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="210" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/>
-      <!-- LED row -->
-      <circle cx="40" cy="231.5" r="2.5" fill="#f0c96b" opacity=".8" class="led-nova"/>
-      <circle cx="48" cy="231.5" r="2.5" fill="#36d399" opacity=".7"/>
-      <circle cx="56" cy="231.5" r="2.5" fill="#f0c96b" opacity=".5"/>
-      <!-- mug -->
-      <rect x="232" y="190.2" width="12" height="10" rx="2" fill="#0f1e30" stroke="#f0c96b44" stroke-width="1"/>
-      <rect x="243" y="193.2" width="4" height="5" rx="2" fill="none" stroke="#f0c96b66" stroke-width="1"/>
-      <!-- name tag -->
-      <text x="140" y="281" text-anchor="middle" fill="#f0c96b" font-family="'Press Start 2P'" font-size="6.5" opacity=".9">NOVA</text>
-      <text x="140" y="292" text-anchor="middle" fill="#f0c96b99" font-family="'JetBrains Mono'" font-size="8">Director</text>
-      <!-- astronaut centered behind console top -->
-      <g class="astro-nova" transform="translate(140, 183.6)"><g class="astro-body">
-    <!-- shadow -->
-    <ellipse cx="0" cy="8" rx="10" ry="3.5" fill="#000" opacity=".4"/>
-    <!-- torso/suit -->
-    <rect x="-7" y="-16" width="14" height="14" rx="5" fill="#dce8f0"/>
-    <!-- chest stripe -->
-    <rect x="-7" y="-9" width="14" height="4" fill="#f0c96b" opacity=".85"/>
-    <!-- chest badge -->
-    <rect x="-3" y="-10" width="6" height="4" rx="1" fill="#f0c96b"/>
-    <!-- arms -->
-    <rect x="-11" y="-14" width="4" height="9" rx="2" fill="#c8d8e8"/>
-    <rect x="7" y="-14" width="4" height="9" rx="2" fill="#c8d8e8"/>
-    <!-- gloves -->
-    <ellipse cx="-9" cy="-5" rx="3" ry="2.5" fill="#f0c96b" opacity=".8"/>
-    <ellipse cx="9" cy="-5" rx="3" ry="2.5" fill="#f0c96b" opacity=".8"/>
-    <!-- helmet -->
-    <circle cx="0" cy="-22" r="9" fill="#e8f2fa"/>
-    <!-- visor -->
-    <path d="M-6 -24 a6 6 0 0 1 12 0 a6 6 0 0 1 -12 0Z" fill="#08101e" class="visor"/>
-    <!-- visor shine -->
-    <ellipse cx="-2" cy="-25" rx="2.5" ry="1.8" fill="#f0c96b" opacity=".7" class="visor-shine"/>
-    <!-- visor inner glow (shows when active) -->
-    <path d="M-5 -24 a5 5 0 0 1 10 0 a5 5 0 0 1 -10 0Z" fill="#f0c96b" opacity="0" class="visor-glow"/>
-    <!-- antenna -->
-    <line x1="0" y1="-31" x2="0" y2="-28" stroke="#f0c96b" stroke-width="1.5"/>
-    <circle cx="0" cy="-33" r="2.5" fill="#f0c96b" opacity=".9" class="antenna-dot"/>
-    <!-- zzz group -->
-    <g class="zzz">
-      <text x="7" y="-30" class="zz1" fill="#bfeede" font-family="'Press Start 2P'" font-size="5">z</text>
-      <text x="10" y="-34" class="zz2" fill="#bfeede" font-family="'Press Start 2P'" font-size="6">z</text>
-      <text x="13" y="-38" class="zz3" fill="#bfeede" font-family="'Press Start 2P'" font-size="7">z</text>
-    </g>
-  </g></g>
-    </g>
-    <g class="station" id="station-astra">
-      <!-- console base -->
-      <rect x="340" y="215.5" width="220" height="49.5" rx="4" fill="#0a1220" stroke="#00e5ff44" stroke-width="1"/>
-      <!-- console top surface (angled panel) -->
-      <polygon points="344,188 556,188 560,215.5 340,215.5" fill="#0d1e30" stroke="#00e5ff55" stroke-width="1"/>
-      <!-- main screen -->
-      <rect x="348" y="159" width="204" height="29" rx="3" fill="#020810" stroke="#00e5ff66" stroke-width="1.5" id="scr-astra"/>
-      <!-- screen inner glow base -->
-      <rect x="351" y="162" width="198" height="23" rx="2" fill="#0a0f18" id="scr-astra-inner"/>
-      <!-- screen scanlines -->
-      <line x1="351" y1="162" x2="549" y2="162" stroke="#00e5ff18" stroke-width=".5"/><line x1="351" y1="168" x2="549" y2="168" stroke="#00e5ff18" stroke-width=".5"/><line x1="351" y1="174" x2="549" y2="174" stroke="#00e5ff18" stroke-width=".5"/><line x1="351" y1="180" x2="549" y2="180" stroke="#00e5ff18" stroke-width=".5"/>
-      <!-- keyboard strip -->
-      <rect x="350" y="219.5" width="200" height="8" rx="2" fill="#060e1c"/>
-      <rect x="352" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="380" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="408" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="436" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="464" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="492" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="520" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/>
-      <!-- LED row -->
-      <circle cx="350" cy="231.5" r="2.5" fill="#00e5ff" opacity=".8" class="led-astra"/>
-      <circle cx="358" cy="231.5" r="2.5" fill="#36d399" opacity=".7"/>
-      <circle cx="366" cy="231.5" r="2.5" fill="#00e5ff" opacity=".5"/>
-      <!-- mug -->
-      <rect x="542" y="190.2" width="12" height="10" rx="2" fill="#0f1e30" stroke="#00e5ff44" stroke-width="1"/>
-      <rect x="553" y="193.2" width="4" height="5" rx="2" fill="none" stroke="#00e5ff66" stroke-width="1"/>
-      <!-- name tag -->
-      <text x="450" y="281" text-anchor="middle" fill="#00e5ff" font-family="'Press Start 2P'" font-size="6.5" opacity=".9">ASTRA</text>
-      <text x="450" y="292" text-anchor="middle" fill="#00e5ff99" font-family="'JetBrains Mono'" font-size="8">Lead Gen</text>
-      <!-- astronaut centered behind console top -->
-      <g class="astro-astra" transform="translate(450, 183.6)"><g class="astro-body">
-    <!-- shadow -->
-    <ellipse cx="0" cy="8" rx="10" ry="3.5" fill="#000" opacity=".4"/>
-    <!-- torso/suit -->
-    <rect x="-7" y="-16" width="14" height="14" rx="5" fill="#dce8f0"/>
-    <!-- chest stripe -->
-    <rect x="-7" y="-9" width="14" height="4" fill="#00e5ff" opacity=".85"/>
-    <!-- chest badge -->
-    <rect x="-3" y="-10" width="6" height="4" rx="1" fill="#00e5ff"/>
-    <!-- arms -->
-    <rect x="-11" y="-14" width="4" height="9" rx="2" fill="#c8d8e8"/>
-    <rect x="7" y="-14" width="4" height="9" rx="2" fill="#c8d8e8"/>
-    <!-- gloves -->
-    <ellipse cx="-9" cy="-5" rx="3" ry="2.5" fill="#00e5ff" opacity=".8"/>
-    <ellipse cx="9" cy="-5" rx="3" ry="2.5" fill="#00e5ff" opacity=".8"/>
-    <!-- helmet -->
-    <circle cx="0" cy="-22" r="9" fill="#e8f2fa"/>
-    <!-- visor -->
-    <path d="M-6 -24 a6 6 0 0 1 12 0 a6 6 0 0 1 -12 0Z" fill="#08101e" class="visor"/>
-    <!-- visor shine -->
-    <ellipse cx="-2" cy="-25" rx="2.5" ry="1.8" fill="#00e5ff" opacity=".7" class="visor-shine"/>
-    <!-- visor inner glow (shows when active) -->
-    <path d="M-5 -24 a5 5 0 0 1 10 0 a5 5 0 0 1 -10 0Z" fill="#00e5ff" opacity="0" class="visor-glow"/>
-    <!-- antenna -->
-    <line x1="0" y1="-31" x2="0" y2="-28" stroke="#00e5ff" stroke-width="1.5"/>
-    <circle cx="0" cy="-33" r="2.5" fill="#00e5ff" opacity=".9" class="antenna-dot"/>
-    <!-- zzz group -->
-    <g class="zzz">
-      <text x="7" y="-30" class="zz1" fill="#bfeede" font-family="'Press Start 2P'" font-size="5">z</text>
-      <text x="10" y="-34" class="zz2" fill="#bfeede" font-family="'Press Start 2P'" font-size="6">z</text>
-      <text x="13" y="-38" class="zz3" fill="#bfeede" font-family="'Press Start 2P'" font-size="7">z</text>
-    </g>
-  </g></g>
-    </g>
-    <g class="station" id="station-orion">
-      <!-- console base -->
-      <rect x="650" y="215.5" width="220" height="49.5" rx="4" fill="#0a1220" stroke="#a78bfa44" stroke-width="1"/>
-      <!-- console top surface (angled panel) -->
-      <polygon points="654,188 866,188 870,215.5 650,215.5" fill="#0d1e30" stroke="#a78bfa55" stroke-width="1"/>
-      <!-- main screen -->
-      <rect x="658" y="159" width="204" height="29" rx="3" fill="#020810" stroke="#a78bfa66" stroke-width="1.5" id="scr-orion"/>
-      <!-- screen inner glow base -->
-      <rect x="661" y="162" width="198" height="23" rx="2" fill="#0a0f18" id="scr-orion-inner"/>
-      <!-- screen scanlines -->
-      <line x1="661" y1="162" x2="859" y2="162" stroke="#a78bfa18" stroke-width=".5"/><line x1="661" y1="168" x2="859" y2="168" stroke="#a78bfa18" stroke-width=".5"/><line x1="661" y1="174" x2="859" y2="174" stroke="#a78bfa18" stroke-width=".5"/><line x1="661" y1="180" x2="859" y2="180" stroke="#a78bfa18" stroke-width=".5"/>
-      <!-- keyboard strip -->
-      <rect x="660" y="219.5" width="200" height="8" rx="2" fill="#060e1c"/>
-      <rect x="662" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="690" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="718" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="746" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="774" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="802" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="830" y="220.5" width="26" height="6" rx="1" fill="#0c1830"/>
-      <!-- LED row -->
-      <circle cx="660" cy="231.5" r="2.5" fill="#a78bfa" opacity=".8" class="led-orion"/>
-      <circle cx="668" cy="231.5" r="2.5" fill="#36d399" opacity=".7"/>
-      <circle cx="676" cy="231.5" r="2.5" fill="#a78bfa" opacity=".5"/>
-      <!-- mug -->
-      <rect x="852" y="190.2" width="12" height="10" rx="2" fill="#0f1e30" stroke="#a78bfa44" stroke-width="1"/>
-      <rect x="863" y="193.2" width="4" height="5" rx="2" fill="none" stroke="#a78bfa66" stroke-width="1"/>
-      <!-- name tag -->
-      <text x="760" y="281" text-anchor="middle" fill="#a78bfa" font-family="'Press Start 2P'" font-size="6.5" opacity=".9">ORION</text>
-      <text x="760" y="292" text-anchor="middle" fill="#a78bfa99" font-family="'JetBrains Mono'" font-size="8">Web Dev</text>
-      <!-- astronaut centered behind console top -->
-      <g class="astro-orion" transform="translate(760, 183.6)"><g class="astro-body">
-    <!-- shadow -->
-    <ellipse cx="0" cy="8" rx="10" ry="3.5" fill="#000" opacity=".4"/>
-    <!-- torso/suit -->
-    <rect x="-7" y="-16" width="14" height="14" rx="5" fill="#dce8f0"/>
-    <!-- chest stripe -->
-    <rect x="-7" y="-9" width="14" height="4" fill="#a78bfa" opacity=".85"/>
-    <!-- chest badge -->
-    <rect x="-3" y="-10" width="6" height="4" rx="1" fill="#a78bfa"/>
-    <!-- arms -->
-    <rect x="-11" y="-14" width="4" height="9" rx="2" fill="#c8d8e8"/>
-    <rect x="7" y="-14" width="4" height="9" rx="2" fill="#c8d8e8"/>
-    <!-- gloves -->
-    <ellipse cx="-9" cy="-5" rx="3" ry="2.5" fill="#a78bfa" opacity=".8"/>
-    <ellipse cx="9" cy="-5" rx="3" ry="2.5" fill="#a78bfa" opacity=".8"/>
-    <!-- helmet -->
-    <circle cx="0" cy="-22" r="9" fill="#e8f2fa"/>
-    <!-- visor -->
-    <path d="M-6 -24 a6 6 0 0 1 12 0 a6 6 0 0 1 -12 0Z" fill="#08101e" class="visor"/>
-    <!-- visor shine -->
-    <ellipse cx="-2" cy="-25" rx="2.5" ry="1.8" fill="#a78bfa" opacity=".7" class="visor-shine"/>
-    <!-- visor inner glow (shows when active) -->
-    <path d="M-5 -24 a5 5 0 0 1 10 0 a5 5 0 0 1 -10 0Z" fill="#a78bfa" opacity="0" class="visor-glow"/>
-    <!-- antenna -->
-    <line x1="0" y1="-31" x2="0" y2="-28" stroke="#a78bfa" stroke-width="1.5"/>
-    <circle cx="0" cy="-33" r="2.5" fill="#a78bfa" opacity=".9" class="antenna-dot"/>
-    <!-- zzz group -->
-    <g class="zzz">
-      <text x="7" y="-30" class="zz1" fill="#bfeede" font-family="'Press Start 2P'" font-size="5">z</text>
-      <text x="10" y="-34" class="zz2" fill="#bfeede" font-family="'Press Start 2P'" font-size="6">z</text>
-      <text x="13" y="-38" class="zz3" fill="#bfeede" font-family="'Press Start 2P'" font-size="7">z</text>
-    </g>
-  </g></g>
-    </g>
-    <g class="station" id="station-rex">
-      <!-- console base -->
-      <rect x="30" y="340.5" width="220" height="49.5" rx="4" fill="#0a1220" stroke="#fb923c44" stroke-width="1"/>
-      <!-- console top surface (angled panel) -->
-      <polygon points="34,313 246,313 250,340.5 30,340.5" fill="#0d1e30" stroke="#fb923c55" stroke-width="1"/>
-      <!-- main screen -->
-      <rect x="38" y="284" width="204" height="29" rx="3" fill="#020810" stroke="#fb923c66" stroke-width="1.5" id="scr-rex"/>
-      <!-- screen inner glow base -->
-      <rect x="41" y="287" width="198" height="23" rx="2" fill="#0a0f18" id="scr-rex-inner"/>
-      <!-- screen scanlines -->
-      <line x1="41" y1="287" x2="239" y2="287" stroke="#fb923c18" stroke-width=".5"/><line x1="41" y1="293" x2="239" y2="293" stroke="#fb923c18" stroke-width=".5"/><line x1="41" y1="299" x2="239" y2="299" stroke="#fb923c18" stroke-width=".5"/><line x1="41" y1="305" x2="239" y2="305" stroke="#fb923c18" stroke-width=".5"/>
-      <!-- keyboard strip -->
-      <rect x="40" y="344.5" width="200" height="8" rx="2" fill="#060e1c"/>
-      <rect x="42" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="70" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="98" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="126" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="154" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="182" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="210" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/>
-      <!-- LED row -->
-      <circle cx="40" cy="356.5" r="2.5" fill="#fb923c" opacity=".8" class="led-rex"/>
-      <circle cx="48" cy="356.5" r="2.5" fill="#36d399" opacity=".7"/>
-      <circle cx="56" cy="356.5" r="2.5" fill="#fb923c" opacity=".5"/>
-      <!-- mug -->
-      <rect x="232" y="315.2" width="12" height="10" rx="2" fill="#0f1e30" stroke="#fb923c44" stroke-width="1"/>
-      <rect x="243" y="318.2" width="4" height="5" rx="2" fill="none" stroke="#fb923c66" stroke-width="1"/>
-      <!-- name tag -->
-      <text x="140" y="406" text-anchor="middle" fill="#fb923c" font-family="'Press Start 2P'" font-size="6.5" opacity=".9">REX</text>
-      <text x="140" y="417" text-anchor="middle" fill="#fb923c99" font-family="'JetBrains Mono'" font-size="8">Sales</text>
-      <!-- astronaut centered behind console top -->
-      <g class="astro-rex" transform="translate(140, 308.6)"><g class="astro-body">
-    <!-- shadow -->
-    <ellipse cx="0" cy="8" rx="10" ry="3.5" fill="#000" opacity=".4"/>
-    <!-- torso/suit -->
-    <rect x="-7" y="-16" width="14" height="14" rx="5" fill="#dce8f0"/>
-    <!-- chest stripe -->
-    <rect x="-7" y="-9" width="14" height="4" fill="#fb923c" opacity=".85"/>
-    <!-- chest badge -->
-    <rect x="-3" y="-10" width="6" height="4" rx="1" fill="#fb923c"/>
-    <!-- arms -->
-    <rect x="-11" y="-14" width="4" height="9" rx="2" fill="#c8d8e8"/>
-    <rect x="7" y="-14" width="4" height="9" rx="2" fill="#c8d8e8"/>
-    <!-- gloves -->
-    <ellipse cx="-9" cy="-5" rx="3" ry="2.5" fill="#fb923c" opacity=".8"/>
-    <ellipse cx="9" cy="-5" rx="3" ry="2.5" fill="#fb923c" opacity=".8"/>
-    <!-- helmet -->
-    <circle cx="0" cy="-22" r="9" fill="#e8f2fa"/>
-    <!-- visor -->
-    <path d="M-6 -24 a6 6 0 0 1 12 0 a6 6 0 0 1 -12 0Z" fill="#08101e" class="visor"/>
-    <!-- visor shine -->
-    <ellipse cx="-2" cy="-25" rx="2.5" ry="1.8" fill="#fb923c" opacity=".7" class="visor-shine"/>
-    <!-- visor inner glow (shows when active) -->
-    <path d="M-5 -24 a5 5 0 0 1 10 0 a5 5 0 0 1 -10 0Z" fill="#fb923c" opacity="0" class="visor-glow"/>
-    <!-- antenna -->
-    <line x1="0" y1="-31" x2="0" y2="-28" stroke="#fb923c" stroke-width="1.5"/>
-    <circle cx="0" cy="-33" r="2.5" fill="#fb923c" opacity=".9" class="antenna-dot"/>
-    <!-- zzz group -->
-    <g class="zzz">
-      <text x="7" y="-30" class="zz1" fill="#bfeede" font-family="'Press Start 2P'" font-size="5">z</text>
-      <text x="10" y="-34" class="zz2" fill="#bfeede" font-family="'Press Start 2P'" font-size="6">z</text>
-      <text x="13" y="-38" class="zz3" fill="#bfeede" font-family="'Press Start 2P'" font-size="7">z</text>
-    </g>
-  </g></g>
-    </g>
-    <g class="station" id="station-luna">
-      <!-- console base -->
-      <rect x="340" y="340.5" width="220" height="49.5" rx="4" fill="#0a1220" stroke="#f472b644" stroke-width="1"/>
-      <!-- console top surface (angled panel) -->
-      <polygon points="344,313 556,313 560,340.5 340,340.5" fill="#0d1e30" stroke="#f472b655" stroke-width="1"/>
-      <!-- main screen -->
-      <rect x="348" y="284" width="204" height="29" rx="3" fill="#020810" stroke="#f472b666" stroke-width="1.5" id="scr-luna"/>
-      <!-- screen inner glow base -->
-      <rect x="351" y="287" width="198" height="23" rx="2" fill="#0a0f18" id="scr-luna-inner"/>
-      <!-- screen scanlines -->
-      <line x1="351" y1="287" x2="549" y2="287" stroke="#f472b618" stroke-width=".5"/><line x1="351" y1="293" x2="549" y2="293" stroke="#f472b618" stroke-width=".5"/><line x1="351" y1="299" x2="549" y2="299" stroke="#f472b618" stroke-width=".5"/><line x1="351" y1="305" x2="549" y2="305" stroke="#f472b618" stroke-width=".5"/>
-      <!-- keyboard strip -->
-      <rect x="350" y="344.5" width="200" height="8" rx="2" fill="#060e1c"/>
-      <rect x="352" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="380" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="408" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="436" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="464" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="492" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="520" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/>
-      <!-- LED row -->
-      <circle cx="350" cy="356.5" r="2.5" fill="#f472b6" opacity=".8" class="led-luna"/>
-      <circle cx="358" cy="356.5" r="2.5" fill="#36d399" opacity=".7"/>
-      <circle cx="366" cy="356.5" r="2.5" fill="#f472b6" opacity=".5"/>
-      <!-- mug -->
-      <rect x="542" y="315.2" width="12" height="10" rx="2" fill="#0f1e30" stroke="#f472b644" stroke-width="1"/>
-      <rect x="553" y="318.2" width="4" height="5" rx="2" fill="none" stroke="#f472b666" stroke-width="1"/>
-      <!-- name tag -->
-      <text x="450" y="406" text-anchor="middle" fill="#f472b6" font-family="'Press Start 2P'" font-size="6.5" opacity=".9">LUNA</text>
-      <text x="450" y="417" text-anchor="middle" fill="#f472b699" font-family="'JetBrains Mono'" font-size="8">App Dev</text>
-      <!-- astronaut centered behind console top -->
-      <g class="astro-luna" transform="translate(450, 308.6)"><g class="astro-body">
-    <!-- shadow -->
-    <ellipse cx="0" cy="8" rx="10" ry="3.5" fill="#000" opacity=".4"/>
-    <!-- torso/suit -->
-    <rect x="-7" y="-16" width="14" height="14" rx="5" fill="#dce8f0"/>
-    <!-- chest stripe -->
-    <rect x="-7" y="-9" width="14" height="4" fill="#f472b6" opacity=".85"/>
-    <!-- chest badge -->
-    <rect x="-3" y="-10" width="6" height="4" rx="1" fill="#f472b6"/>
-    <!-- arms -->
-    <rect x="-11" y="-14" width="4" height="9" rx="2" fill="#c8d8e8"/>
-    <rect x="7" y="-14" width="4" height="9" rx="2" fill="#c8d8e8"/>
-    <!-- gloves -->
-    <ellipse cx="-9" cy="-5" rx="3" ry="2.5" fill="#f472b6" opacity=".8"/>
-    <ellipse cx="9" cy="-5" rx="3" ry="2.5" fill="#f472b6" opacity=".8"/>
-    <!-- helmet -->
-    <circle cx="0" cy="-22" r="9" fill="#e8f2fa"/>
-    <!-- visor -->
-    <path d="M-6 -24 a6 6 0 0 1 12 0 a6 6 0 0 1 -12 0Z" fill="#08101e" class="visor"/>
-    <!-- visor shine -->
-    <ellipse cx="-2" cy="-25" rx="2.5" ry="1.8" fill="#f472b6" opacity=".7" class="visor-shine"/>
-    <!-- visor inner glow (shows when active) -->
-    <path d="M-5 -24 a5 5 0 0 1 10 0 a5 5 0 0 1 -10 0Z" fill="#f472b6" opacity="0" class="visor-glow"/>
-    <!-- antenna -->
-    <line x1="0" y1="-31" x2="0" y2="-28" stroke="#f472b6" stroke-width="1.5"/>
-    <circle cx="0" cy="-33" r="2.5" fill="#f472b6" opacity=".9" class="antenna-dot"/>
-    <!-- zzz group -->
-    <g class="zzz">
-      <text x="7" y="-30" class="zz1" fill="#bfeede" font-family="'Press Start 2P'" font-size="5">z</text>
-      <text x="10" y="-34" class="zz2" fill="#bfeede" font-family="'Press Start 2P'" font-size="6">z</text>
-      <text x="13" y="-38" class="zz3" fill="#bfeede" font-family="'Press Start 2P'" font-size="7">z</text>
-    </g>
-  </g></g>
-    </g>
-    <g class="station" id="station-vera">
-      <!-- console base -->
-      <rect x="650" y="340.5" width="220" height="49.5" rx="4" fill="#0a1220" stroke="#7dd3fc44" stroke-width="1"/>
-      <!-- console top surface (angled panel) -->
-      <polygon points="654,313 866,313 870,340.5 650,340.5" fill="#0d1e30" stroke="#7dd3fc55" stroke-width="1"/>
-      <!-- main screen -->
-      <rect x="658" y="284" width="204" height="29" rx="3" fill="#020810" stroke="#7dd3fc66" stroke-width="1.5" id="scr-vera"/>
-      <!-- screen inner glow base -->
-      <rect x="661" y="287" width="198" height="23" rx="2" fill="#0a0f18" id="scr-vera-inner"/>
-      <!-- screen scanlines -->
-      <line x1="661" y1="287" x2="859" y2="287" stroke="#7dd3fc18" stroke-width=".5"/><line x1="661" y1="293" x2="859" y2="293" stroke="#7dd3fc18" stroke-width=".5"/><line x1="661" y1="299" x2="859" y2="299" stroke="#7dd3fc18" stroke-width=".5"/><line x1="661" y1="305" x2="859" y2="305" stroke="#7dd3fc18" stroke-width=".5"/>
-      <!-- keyboard strip -->
-      <rect x="660" y="344.5" width="200" height="8" rx="2" fill="#060e1c"/>
-      <rect x="662" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="690" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="718" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="746" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="774" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="802" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/><rect x="830" y="345.5" width="26" height="6" rx="1" fill="#0c1830"/>
-      <!-- LED row -->
-      <circle cx="660" cy="356.5" r="2.5" fill="#7dd3fc" opacity=".8" class="led-vera"/>
-      <circle cx="668" cy="356.5" r="2.5" fill="#36d399" opacity=".7"/>
-      <circle cx="676" cy="356.5" r="2.5" fill="#7dd3fc" opacity=".5"/>
-      <!-- mug -->
-      <rect x="852" y="315.2" width="12" height="10" rx="2" fill="#0f1e30" stroke="#7dd3fc44" stroke-width="1"/>
-      <rect x="863" y="318.2" width="4" height="5" rx="2" fill="none" stroke="#7dd3fc66" stroke-width="1"/>
-      <!-- name tag -->
-      <text x="760" y="406" text-anchor="middle" fill="#7dd3fc" font-family="'Press Start 2P'" font-size="6.5" opacity=".9">VERA</text>
-      <text x="760" y="417" text-anchor="middle" fill="#7dd3fc99" font-family="'JetBrains Mono'" font-size="8">Ops</text>
-      <!-- astronaut centered behind console top -->
-      <g class="astro-vera" transform="translate(760, 308.6)"><g class="astro-body">
-    <!-- shadow -->
-    <ellipse cx="0" cy="8" rx="10" ry="3.5" fill="#000" opacity=".4"/>
-    <!-- torso/suit -->
-    <rect x="-7" y="-16" width="14" height="14" rx="5" fill="#dce8f0"/>
-    <!-- chest stripe -->
-    <rect x="-7" y="-9" width="14" height="4" fill="#7dd3fc" opacity=".85"/>
-    <!-- chest badge -->
-    <rect x="-3" y="-10" width="6" height="4" rx="1" fill="#7dd3fc"/>
-    <!-- arms -->
-    <rect x="-11" y="-14" width="4" height="9" rx="2" fill="#c8d8e8"/>
-    <rect x="7" y="-14" width="4" height="9" rx="2" fill="#c8d8e8"/>
-    <!-- gloves -->
-    <ellipse cx="-9" cy="-5" rx="3" ry="2.5" fill="#7dd3fc" opacity=".8"/>
-    <ellipse cx="9" cy="-5" rx="3" ry="2.5" fill="#7dd3fc" opacity=".8"/>
-    <!-- helmet -->
-    <circle cx="0" cy="-22" r="9" fill="#e8f2fa"/>
-    <!-- visor -->
-    <path d="M-6 -24 a6 6 0 0 1 12 0 a6 6 0 0 1 -12 0Z" fill="#08101e" class="visor"/>
-    <!-- visor shine -->
-    <ellipse cx="-2" cy="-25" rx="2.5" ry="1.8" fill="#7dd3fc" opacity=".7" class="visor-shine"/>
-    <!-- visor inner glow (shows when active) -->
-    <path d="M-5 -24 a5 5 0 0 1 10 0 a5 5 0 0 1 -10 0Z" fill="#7dd3fc" opacity="0" class="visor-glow"/>
-    <!-- antenna -->
-    <line x1="0" y1="-31" x2="0" y2="-28" stroke="#7dd3fc" stroke-width="1.5"/>
-    <circle cx="0" cy="-33" r="2.5" fill="#7dd3fc" opacity=".9" class="antenna-dot"/>
-    <!-- zzz group -->
-    <g class="zzz">
-      <text x="7" y="-30" class="zz1" fill="#bfeede" font-family="'Press Start 2P'" font-size="5">z</text>
-      <text x="10" y="-34" class="zz2" fill="#bfeede" font-family="'Press Start 2P'" font-size="6">z</text>
-      <text x="13" y="-38" class="zz3" fill="#bfeede" font-family="'Press Start 2P'" font-size="7">z</text>
-    </g>
-  </g></g>
-    </g>
-  
-  <!-- FLOOR bottom strip -->
-  <rect x="0" y="444" width="900" height="16" fill="#050c1a"/>
-  <rect x="0" y="443" width="900" height="2" fill="#1a3050"/>
-</svg></div>
-
-<div class="terminal-wrap">
-  <div class="term-bar">
-    <span class="tdots"><i></i><i></i><i></i></span>
-    <span class="tlbl">orbit@crew ~/orbitcrm &mdash; mission terminal</span>
-  </div>
-  <div class="term-body" id="term"></div>
+<div class="ship-wrap"><svg id="scene" viewBox="0 0 900 480" xmlns="http://www.w3.org/2000/svg"></svg></div>
+<div class="term-wrap">
+  <div class="tbar"><span class="tdots"><i></i><i></i><i></i></span><span class="tlbl">orbit@crew ~/orbitcrm &mdash; mission terminal</span></div>
+  <div class="tbody" id="term"></div>
 </div>
-
 <div class="ctrl">
-  <div class="ctrl-lbl">Dispatch Order</div>
-  <div class="ctrl-row">
-    <input class="ctrl-input" id="cmd" autocomplete="off" placeholder="e.g. Find 100 businesses that need websites"/>
-    <button class="run-btn" id="run">DISPATCH</button>
-  </div>
+  <div class="clbl">Dispatch Order</div>
+  <div class="crow"><input class="cinp" id="cmd" autocomplete="off" placeholder="e.g. Find 100 businesses that need websites"/><button class="rbtn" id="run">DISPATCH</button></div>
   <div class="chips" id="chips"></div>
 </div>
-
-<div class="footer">Orbit Mission Deck &middot; cockpit preview &mdash; same crew runs inside your app</div>
+<div class="foot">Orbit Mission Deck &middot; same crew runs inside your app</div>
 </div>
-
 <script>
 (function(){
-// Clock
-function tick(){
-  var d=new Date();
-  document.getElementById('clock').textContent=
-    ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)+':'+('0'+d.getSeconds()).slice(-2)+' UTC';
+"use strict";
+var NS='http://www.w3.org/2000/svg';
+var scene=document.getElementById('scene');
+var W=900,H=480;
+
+function el(t,a,p){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);(p||scene).appendChild(e);return e;}
+function elg(a,p){return el('g',a||{},p||scene);}
+
+// ===== DRAW SHIP BACKGROUND =====
+// Hull bg
+el('rect',{x:0,y:0,width:W,height:H,fill:'#030a12'});
+el('rect',{x:0,y:0,width:W,height:52,fill:'#060f1e'});
+el('rect',{x:0,y:50,width:W,height:2,fill:'#0e2840'});
+for(var cp=0;cp<9;cp++)el('rect',{x:cp*102,y:2,width:100,height:48,rx:2,fill:'#040c1a',stroke:'#0a1e30','stroke-width':.8});
+for(var cl=0;cl<5;cl++){var cx2=90+cl*180;el('rect',{x:cx2-28,y:44,width:56,height:6,rx:3,fill:'#00e5ff',opacity:.5});el('ellipse',{cx:cx2,cy:120,rx:85,ry:70,fill:'#00e5ff',opacity:.025});}
+
+// Viewport
+el('rect',{x:60,y:6,width:780,height:38,rx:4,fill:'#020810',stroke:'#1a3a5a','stroke-width':1.5});
+for(var si=0;si<110;si++){var sx=65+Math.random()*770,sy=9+Math.random()*30;el('circle',{cx:sx.toFixed(1),cy:sy.toFixed(1),r:(Math.random()<.12?1.3:.5).toFixed(1),fill:'#fff',opacity:(.25+Math.random()*.7).toFixed(2)});}
+[[180,24,'#00e5ff',.8],[620,28,'#f0c96b',.7],[800,20,'#a78bfa',.75]].forEach(function(s){el('circle',{cx:s[0],cy:s[1],r:1.8,fill:s[2],opacity:s[3]});});
+el('circle',{cx:740,cy:24,r:16,fill:'#122040',opacity:.9});el('circle',{cx:735,cy:19,r:6,fill:'#1e3060',opacity:.65});el('ellipse',{cx:740,cy:24,rx:24,ry:6,fill:'none',stroke:'#3a6090','stroke-width':1.5,opacity:.5});
+el('ellipse',{cx:300,cy:22,rx:80,ry:18,fill:'#00e5ff',opacity:.03});el('ellipse',{cx:580,cy:20,rx:70,ry:15,fill:'#a78bfa',opacity:.035});
+[80,220,380,540,700,820].forEach(function(bx){el('circle',{cx:bx,cy:6,r:2.2,fill:'#1a3050'});el('circle',{cx:bx,cy:44,r:2.2,fill:'#1a3050'});});
+
+// Status strip
+el('rect',{x:0,y:52,width:W,height:22,fill:'#040c1a'});
+el('rect',{x:0,y:74,width:W,height:1,fill:'#0e2840'});
+['SYS:NOMINAL','ORBIT:STABLE','CREW:6 ON DECK','AI:ONLINE'].forEach(function(s,i){var t=el('text',{x:55+i*218,y:67,fill:['#00e5ff','#36d399','#f0c96b','#a78bfa'][i],'font-family':"'JetBrains Mono'",'font-size':9.5,opacity:.75});t.textContent=s;});
+
+// Side panels
+el('rect',{x:0,y:52,width:20,height:H-52,fill:'#04101e',stroke:'#0e2840','stroke-width':.8});
+el('rect',{x:W-20,y:52,width:20,height:H-52,fill:'#04101e',stroke:'#0e2840','stroke-width':.8});
+['#36d399','#f4b942','#00e5ff','#a78bfa','#fb923c','#e8303a'].forEach(function(c,i){el('rect',{x:3,y:90+i*28,width:14,height:4,rx:1,fill:c,opacity:.6});});
+['#7dd3fc','#f472b6','#fb923c','#a78bfa','#00e5ff','#36d399'].forEach(function(c,i){el('rect',{x:W-17,y:90+i*28,width:14,height:4,rx:1,fill:c,opacity:.6});});
+
+// Floor
+el('rect',{x:20,y:75,width:W-40,height:H-75,fill:'#030b18'});
+for(var fy=0;fy<8;fy++)el('line',{x1:20,y1:96+fy*52,x2:W-20,y2:96+fy*52,stroke:'#08192c','stroke-width':.7,opacity:(1-fy*.11).toFixed(2)});
+for(var fx=0;fx<11;fx++)el('line',{x1:20+fx*88,y1:75,x2:20+fx*88,y2:H,stroke:'#08192c','stroke-width':.5,opacity:.5});
+el('rect',{x:20,y:H-10,width:W-40,height:10,fill:'#040e1c'});
+el('rect',{x:20,y:H-11,width:W-40,height:1.5,fill:'#00e5ff',opacity:.15});
+
+// Server rack (far right)
+el('rect',{x:845,y:140,width:32,height:60,rx:2,fill:'#050e1c',stroke:'#0e2840','stroke-width':1});
+for(var ri=0;ri<8;ri++)el('rect',{x:848,y:145+ri*7,width:26,height:3,rx:1,fill:ri%2?'#00e5ff':'#36d399',opacity:.55});
+
+// Plants
+function plant(px,py){el('rect',{x:px-4,y:py-2,width:8,height:9,rx:2,fill:'#5a2e10'});el('circle',{cx:px,cy:py-5,r:7,fill:'#226644'});el('circle',{cx:px-5,cy:py-1,r:4,fill:'#2a8055'});el('circle',{cx:px+5,cy:py-1,r:4,fill:'#1e6644'});}
+plant(38,450);plant(450,458);plant(860,450);
+
+// Briefing board on left wall
+el('rect',{x:22,y:180,width:70,height:50,rx:2,fill:'#070f1e',stroke:'#1a3050','stroke-width':1.5});
+el('rect',{x:26,y:184,width:62,height:40,fill:'#0a1624'});
+el('polyline',{points:'30,218 38,206 46,212 58,198 66,204 76,194',fill:'none',stroke:'#00e5ff','stroke-width':1.5});
+el('rect',{x:30,y:216,width:56,height:1,fill:'#1a3050',opacity:.8});
+el('rect',{x:30,y:220,width:40,height:1,fill:'#1a3050',opacity:.6});
+var bbt=el('text',{x:57,y:240,'text-anchor':'middle',fill:'#2a4a6a','font-family':"'Press Start 2P'",'font-size':5});bbt.textContent='BRIEFING';
+
+// ===== SMALL DESK BUILDER =====
+// Each desk: compact ~55x28px, has dual mini-monitors, keyboard, LED
+var DESKS={
+  nova:  {x:140,y:130,color:'#f0c96b'},
+  astra: {x:320,y:100,color:'#00e5ff'},
+  orion: {x:520,y:115,color:'#a78bfa'},
+  rex:   {x:180,y:310,color:'#fb923c'},
+  luna:  {x:400,y:295,color:'#f472b6'},
+  vera:  {x:640,y:320,color:'#7dd3fc'}
+};
+var SCREENS={};
+var DESK_GLOWS={};
+
+function buildDesk(name,dx,dy,color){
+  var g=elg({},scene);
+  // chair behind desk
+  el('ellipse',{cx:dx+27,cy:dy+46,rx:14,ry:6,fill:'#05101e',stroke:'#0c2035','stroke-width':1.5},g);
+  // desk surface
+  el('rect',{x:dx,y:dy,width:55,height:24,rx:2,fill:'#08182c',stroke:'#102238','stroke-width':1},g);
+  // desk front panel
+  el('rect',{x:dx,y:dy+22,width:55,height:8,rx:1,fill:'#060f20'},g);
+  // glow under desk (hidden by default)
+  var glow=el('rect',{x:dx-4,y:dy-4,width:63,height:36,rx:4,fill:color,opacity:0},g);
+  DESK_GLOWS[name]=glow;
+  // left monitor
+  el('rect',{x:dx+4,y:dy+3,width:20,height:14,rx:1,fill:'#020810',stroke:color+'55','stroke-width':1},g);
+  var s1=el('rect',{x:dx+5,y:dy+4,width:18,height:12,rx:.5,fill:'#08101c'},g);
+  // right monitor
+  el('rect',{x:dx+28,y:dy+3,width:20,height:14,rx:1,fill:'#020810',stroke:color+'44','stroke-width':1},g);
+  var s2=el('rect',{x:dx+29,y:dy+4,width:18,height:12,rx:.5,fill:'#08101c'},g);
+  SCREENS[name]=[s1,s2];
+  // keyboard
+  el('rect',{x:dx+6,y:dy+22,width:32,height:5,rx:1,fill:'#060d1c'},g);
+  // LED dots
+  el('circle',{cx:dx+44,cy:dy+25,r:2,fill:color,opacity:.7},g);
+  el('circle',{cx:dx+50,cy:dy+25,r:2,fill:'#36d399',opacity:.6},g);
+  // name label
+  var nt=el('text',{x:dx+27,y:dy-5,'text-anchor':'middle',fill:color,'font-family':"'Press Start 2P'",'font-size':5.5,opacity:.9},g);
+  nt.textContent=name.toUpperCase();
 }
-tick();setInterval(tick,1000);
 
-// Agent colors map
-var AGENT_COLORS={nova:'#f0c96b',astra:'#00e5ff',orion:'#a78bfa',luna:'#f472b6',rex:'#fb923c',vera:'#7dd3fc'};
+Object.keys(DESKS).forEach(function(k){var d=DESKS[k];buildDesk(k,d.x,d.y,d.color);});
 
-// Screen state: set screen fill + glow
-function setScreen(name, mode){
-  var s1=document.getElementById('scr-'+name);
-  var s2=document.getElementById('scr-'+name+'-inner');
-  if(!s1)return;
+function setScreen(name,mode){
+  var arr=SCREENS[name];if(!arr)return;
+  var glow=DESK_GLOWS[name];
   if(mode==='work'){
-    s1.setAttribute('fill','#1a0810');
-    s1.setAttribute('stroke',AGENT_COLORS[name]+'cc');
-    if(s2)s2.setAttribute('fill','#e8303a');
-    // visor glow
-    var vg=document.querySelector('.astro-'+name+' .visor-glow');
-    if(vg)vg.setAttribute('opacity','0.6');
-    var vs=document.querySelector('.astro-'+name+' .visor-shine');
-    if(vs)vs.setAttribute('opacity','1');
-    // antenna pulse
-    var ant=document.querySelector('.astro-'+name+' .antenna-dot');
-    if(ant){ant.setAttribute('fill','#e8303a');ant.style.filter='drop-shadow(0 0 4px #e8303a)';}
-    // zzz off
-    var az=document.querySelector('.astro-'+name+' .zzz');
-    if(az)az.closest('.astro-body').closest('g').classList.remove('sleeping');
-  } else if(mode==='done'){
-    s1.setAttribute('fill','#081a10');
-    s1.setAttribute('stroke',AGENT_COLORS[name]+'aa');
-    if(s2)s2.setAttribute('fill','#1f9f76');
-    var vg2=document.querySelector('.astro-'+name+' .visor-glow');
-    if(vg2)vg2.setAttribute('opacity','0.3');
-    var ant2=document.querySelector('.astro-'+name+' .antenna-dot');
-    if(ant2){ant2.setAttribute('fill',AGENT_COLORS[name]);ant2.style.filter='';}
-  } else {
-    s1.setAttribute('fill','#020810');
-    s1.setAttribute('stroke',AGENT_COLORS[name]+'66');
-    if(s2)s2.setAttribute('fill','#0a0f18');
-    var vg3=document.querySelector('.astro-'+name+' .visor-glow');
-    if(vg3)vg3.setAttribute('opacity','0');
-    var vs3=document.querySelector('.astro-'+name+' .visor-shine');
-    if(vs3)vs3.setAttribute('opacity','0.7');
-    var ant3=document.querySelector('.astro-'+name+' .antenna-dot');
-    if(ant3){ant3.setAttribute('fill',AGENT_COLORS[name]);ant3.style.filter='';}
-    // idle: zzz
-    var bodyG=document.querySelector('.astro-'+name+' .astro-body');
-    var parentG=bodyG?bodyG.parentElement:null;
-    if(parentG)parentG.classList.add('sleeping');
+    arr[0].setAttribute('fill','#e8303a');arr[1].setAttribute('fill','#c02828');
+    if(glow)glow.setAttribute('opacity','0.08');
+  }else if(mode==='done'){
+    arr[0].setAttribute('fill','#1f9f76');arr[1].setAttribute('fill','#147055');
+    if(glow)glow.setAttribute('opacity','0.06');
+  }else{
+    arr[0].setAttribute('fill','#08101c');arr[1].setAttribute('fill','#08101c');
+    if(glow)glow.setAttribute('opacity','0');
   }
 }
 
-// All idle at start
-['nova','astra','orion','luna','rex','vera'].forEach(function(n){setScreen(n,'idle');});
+// ===== ASTRONAUT BUILDER =====
+// Small but detailed pixel astronauts that walk around
+function makeAstro(parent,color){
+  var g=elg({},parent);
+  // shadow
+  el('ellipse',{cx:0,cy:10,rx:8,ry:2.5,fill:'#000',opacity:.35},g);
+  // boots
+  var bl=el('rect',{x:-5,y:5,width:4,height:5,rx:1.5,fill:'#c8d8e8'},g);
+  var br=el('rect',{x:1,y:5,width:4,height:5,rx:1.5,fill:'#c8d8e8'},g);
+  // body group (animates)
+  var body=elg({},g);
+  // suit
+  el('rect',{x:-5,y:-5,width:10,height:11,rx:4,fill:'#e0eaf4'},body);
+  // chest stripe
+  el('rect',{x:-5,y:-1,width:10,height:3,fill:color,opacity:.85},body);
+  // badge
+  el('rect',{x:-2,y:-2,width:4,height:3,rx:.8,fill:color},body);
+  // arms
+  el('rect',{x:-8,y:-4,width:3,height:7,rx:1.5,fill:'#ccd8e8'},body);
+  el('rect',{x:5,y:-4,width:3,height:7,rx:1.5,fill:'#ccd8e8'},body);
+  // gloves
+  el('ellipse',{cx:-6.5,cy:3,rx:2.5,ry:2,fill:color,opacity:.8},body);
+  el('ellipse',{cx:6.5,cy:3,rx:2.5,ry:2,fill:color,opacity:.8},body);
+  // helmet
+  el('circle',{cx:0,cy:-10,r:6.5,fill:'#eaf2fc'},body);
+  // visor
+  el('path',{d:'M-4.5 -11.5 a4.5 4.5 0 0 1 9 0 a4.5 4.5 0 0 1 -9 0Z',fill:'#07101e'},body);
+  // visor reflection
+  var vr=el('ellipse',{cx:-1.5,cy:-12,rx:2,ry:1.4,fill:color,opacity:.7},body);
+  // visor glow (active)
+  el('path',{d:'M-3.5 -11.5 a3.5 3.5 0 0 1 7 0 a3.5 3.5 0 0 1 -7 0Z',fill:color,opacity:0,class:'vglow'},body);
+  // antenna
+  el('line',{x1:0,y1:-17,x2:0,y2:-14,stroke:color,'stroke-width':1.4},body);
+  var ant=el('circle',{cx:0,cy:-18,r:2,fill:color,opacity:.85},body);
+  // zzz group
+  var zg=elg({'class':'zzz'},g);
+  var z1=el('text',{x:5,y:-18,'class':'zz1',fill:'#aaddc8','font-family':"'Press Start 2P'",'font-size':4.5},zg);z1.textContent='z';
+  var z2=el('text',{x:8,y:-22,'class':'zz2',fill:'#aaddc8','font-family':"'Press Start 2P'",'font-size':5.5},zg);z2.textContent='z';
+  var z3=el('text',{x:11,y:-26,'class':'zz3',fill:'#aaddc8','font-family':"'Press Start 2P'",'font-size':6.5},zg);z3.textContent='z';
+  return {g:g,bl:bl,br:br,body:body,vr:vr,ant:ant,zg:zg};
+}
 
-// Terminal
+// ===== AGENTS =====
+var COLORS={nova:'#f0c96b',astra:'#00e5ff',orion:'#a78bfa',rex:'#fb923c',luna:'#f472b6',vera:'#7dd3fc'};
+var NAMES_ROLES={nova:'Director',astra:'Lead Gen',orion:'Web Dev',rex:'Sales',luna:'App Dev',vera:'Ops'};
+var KEYS=['nova','astra','orion','rex','luna','vera'];
+
+// Wander points across the ship floor
+var WPT=[
+  {x:120,y:200},{x:250,y:380},{x:390,y:440},{x:550,y:380},{x:700,y:420},
+  {x:820,y:280},{x:700,y:160},{x:500,y:200},{x:300,y:260},{x:150,y:340},
+  {x:450,y:310},{x:620,y:240},{x:350,y:170},{x:80,y:290},{x:760,y:350}
+];
+
+var MEET_POS=[
+  {x:340,y:220},{x:380,y:240},{x:420,y:220},{x:340,y:260},{x:380,y:280},{x:420,y:260}
+];
+
+var AG={};
+KEYS.forEach(function(k,i){
+  var d=DESKS[k];
+  var start={x:d.x+27,y:d.y+50};
+  var spr=makeAstro(scene,COLORS[k]);
+  AG[k]={
+    spr:spr,x:start.x,y:start.y,
+    tx:start.x,ty:start.y,
+    state:'wander',pause:Math.random()*3,
+    phase:Math.random()*6,speed:28+Math.random()*14,
+    key:k,meetIdx:i
+  };
+  spr.g.setAttribute('transform','translate('+start.x+','+start.y+')');
+});
+
+function deskPos(k){var d=DESKS[k];return {x:d.x+27,y:d.y+50};}
+
+function pickWander(a){
+  var wp=WPT[Math.floor(Math.random()*WPT.length)];
+  a.tx=wp.x+(Math.random()*30-15);
+  a.ty=wp.y+(Math.random()*20-10);
+  // clamp to floor
+  a.tx=Math.max(35,Math.min(W-35,a.tx));
+  a.ty=Math.max(90,Math.min(H-20,a.ty));
+}
+
+// ===== ANIMATION LOOP =====
+var last=0;
+function frame(t){
+  var dt=Math.min(.05,(t-last)/1000||0);last=t;
+  KEYS.forEach(function(k){
+    var a=AG[k];
+
+    // Work state: locked at desk
+    if(a.state==='work'){
+      var dp=deskPos(k);
+      a.x=dp.x;a.y=dp.y;a.tx=dp.x;a.ty=dp.y;
+      a.spr.g.setAttribute('transform','translate('+a.x.toFixed(1)+','+a.y.toFixed(1)+')');
+      // visor pulse
+      var vg=a.spr.body.querySelector('.vglow');
+      if(vg)vg.setAttribute('opacity',(0.4+Math.abs(Math.sin(t/200))*0.5).toFixed(2));
+      a.spr.ant.setAttribute('fill','#e8303a');
+      a.spr.ant.setAttribute('r','2.5');
+      a.spr.zg.classList.remove('sleeping');
+      return;
+    }
+
+    // Meet state
+    if(a.state==='meet'){
+      var mp=MEET_POS[a.meetIdx];
+      a.tx=mp.x;a.ty=mp.y;
+    }
+
+    var dx=a.tx-a.x,dy=a.ty-a.y,dist=Math.hypot(dx,dy);
+    var moving=dist>1.5;
+
+    if(a.state==='wander'&&dist<=2){
+      if(a.pause<=0){a.pause=0.8+Math.random()*3;}
+      else{a.pause-=dt;if(a.pause<=0)pickWander(a);}
+      moving=false;
+    }
+
+    if(moving){
+      var sp2=a.speed*dt;if(sp2>dist)sp2=dist;
+      a.x+=dx/dist*sp2;a.y+=dy/dist*sp2;
+      a.phase+=dt*10;
+      // walk animation: body bob + leg swing
+      a.spr.body.setAttribute('transform','translate(0,'+(Math.sin(a.phase)*0.8).toFixed(2)+')');
+      a.spr.bl.setAttribute('y',(5+Math.sin(a.phase)*2).toFixed(2));
+      a.spr.br.setAttribute('y',(5-Math.sin(a.phase)*2).toFixed(2));
+    }else{
+      a.spr.bl.setAttribute('y',5);
+      a.spr.br.setAttribute('y',5);
+      a.spr.body.setAttribute('transform','translate(0,0)');
+    }
+
+    // visor back to color
+    var vg2=a.spr.body.querySelector('.vglow');
+    if(vg2)vg2.setAttribute('opacity','0');
+    a.spr.ant.setAttribute('fill',COLORS[k]);
+    a.spr.ant.setAttribute('r','2');
+
+    // Zzz only when stopped and wandering
+    if(!moving&&a.state==='wander'){a.spr.g.classList.add('sleeping');}
+    else{a.spr.g.classList.remove('sleeping');}
+
+    a.spr.g.setAttribute('transform','translate('+a.x.toFixed(1)+','+a.y.toFixed(1)+')');
+  });
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+function setState(k,st){if(AG[k])AG[k].state=st;}
+
+// ===== TERMINAL =====
+function tick(){var d=new Date();document.getElementById('clk').textContent=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)+':'+('0'+d.getSeconds()).slice(-2)+' UTC';}
+tick();setInterval(tick,1000);
+
 var term=document.getElementById('term');
 function row(h){var l=document.createElement('div');l.className='ln';l.innerHTML=h;term.appendChild(l);term.scrollTop=term.scrollHeight;return l;}
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function out(c,t){row('<span class="'+c+'">'+esc(t)+'</span>');}
 function wait(ms){return new Promise(function(r){setTimeout(r,ms);});}
 async function typeCmd(t){
-  var l=row('<span class="prompt">orbit &#10095; </span><span class="cmd"></span><span class="cur"></span>');
-  var sp=l.querySelector('.cmd'),c=l.querySelector('.cur');
-  for(var i=0;i<t.length;i++){sp.textContent+=t[i];term.scrollTop=term.scrollHeight;await wait(9+Math.random()*15);}
+  var l=row('<span class="pr">orbit &#10095; </span><span class="cm"></span><span class="cur"></span>');
+  var sp=l.querySelector('.cm'),c=l.querySelector('.cur');
+  for(var i=0;i<t.length;i++){sp.textContent+=t[i];term.scrollTop=term.scrollHeight;await wait(9+Math.random()*14);}
   c.remove();
 }
-async function prog(label){
-  var l=row('<span class="mut">'+esc(label)+' </span><span class="bar"></span>');
-  var b=l.querySelector('.bar');
-  var bars=['░░░░░░░░░░','▓▓▓░░░░░░░','▓▓▓▓▓▓░░░░','▓▓▓▓▓▓▓▓▓░','▓▓▓▓▓▓▓▓▓▓'];
-  for(var i=0;i<bars.length;i++){b.textContent=bars[i]+' '+(i*25)+'%';term.scrollTop=term.scrollHeight;await wait(120);}
+async function prog(lbl){
+  var l=row('<span class="mu">'+esc(lbl)+' </span><span class="ba"></span>');
+  var b=l.querySelector('.ba');
+  var B=['░░░░░░░░░░','▓▓▓░░░░░░░','▓▓▓▓▓▓░░░░','▓▓▓▓▓▓▓▓▓░','▓▓▓▓▓▓▓▓▓▓'];
+  for(var i=0;i<B.length;i++){b.textContent=B[i]+' '+(i*25)+'%';term.scrollTop=term.scrollHeight;await wait(115);}
   b.innerHTML='▓▓▓▓▓▓▓▓▓▓ <span class="ok">DONE</span>';
 }
-function diff(f,a,d){row('<span class="file">'+esc(f)+'</span>');row('<span class="add">++ '+a+'</span>  <span class="del">-- '+d+'</span>');}
+function diff(f,a,d){row('<span class="fi">'+esc(f)+'</span>');row('<span class="ad">++ '+a+'</span>  <span class="de">-- '+d+'</span>');}
 
-// Route order to agents
 function route(o){
   o=o.toLowerCase();var s={};
-  if(/research|competitor|market|find|analyz|intel|lead|business|prospect|scrape|website/.test(o))s.astra=1;
-  if(/landing|web|page|html|site|seo|copy|hero|design|ui|dashboard/.test(o))s.orion=1;
-  if(/app|mobile|feature|component|automat|backend|api|supabase|sms|email|crm|trigger|contact|task/.test(o))s.luna=1;
-  if(/sales|pipeline|deal|close|prospect|quota|revenue|follow.?up/.test(o))s.rex=1;
+  if(/research|find|analyz|intel|lead|business|prospect|scrape/.test(o))s.astra=1;
+  if(/landing|web|page|html|site|seo|design|ui|dashboard/.test(o))s.orion=1;
+  if(/app|automat|backend|api|sms|email|crm|trigger|contact/.test(o))s.luna=1;
+  if(/sales|pipeline|deal|close|quota|revenue|follow.?up/.test(o))s.rex=1;
   if(/ops|report|analytic|metric|kpi|track|monitor|status/.test(o))s.vera=1;
-  if(/everything|orbit|whole|full|launch|mvp|all/.test(o)){s.astra=1;s.orion=1;s.luna=1;s.rex=1;s.vera=1;}
-  var k=Object.keys(s);
-  if(!k.length){s.astra=1;s.luna=1;k=['astra','luna'];}
+  if(/everything|whole|full|launch|mvp|all/.test(o)){s.astra=1;s.orion=1;s.luna=1;s.rex=1;s.vera=1;}
+  var k=Object.keys(s);if(!k.length){s.astra=1;s.luna=1;k=['astra','luna'];}
   return k;
 }
 
-// Steps per agent
 function steps(k,o){
   var ol=o.toLowerCase();
   if(k==='astra')return[
-    {c:'orbit leadgen --needs-website --area "Santiago DR"',out:[['info','Scanning OSM + Google Maps directory…']]},
-    {p:'Filtering: no-website'},
-    {out:[['mut','Found 100 businesses → Orbit pipeline (New)']]},
-    {c:'orbit draft-sms --per-lead',out:[['ok','✓ SMS drafted → moved to "SMS Drafted"']]}
+    {c:'orbit leadgen --needs-website --area "Santiago DR"',out:[['in','Scanning OSM + Google Maps…']]},
+    {p:'Filtering no-website'},{out:[['mu','100 businesses → Orbit pipeline']]},
+    {c:'orbit draft-sms --per-lead',out:[['ok','✓ SMS drafted → SMS Drafted stage']]}
   ];
   if(k==='orion'){
-    var base=/dashboard|ui|design/.test(ol)?[
-      {c:'orbit ui scaffold --component dashboard',out:[['info','Generating layout…']]},
-      {p:'Rendering components'},{df:['dashboard/page.tsx','96','12']}
-    ]:[
-      {c:'orbit web new landing --with-form',out:[['info','Scaffolding landing + lead form…']]},
-      {p:'Building hero section'},{df:['landing/page.tsx','124','0']}
-    ];
-    return base.concat([{c:'orbit wire form → contacts',out:[['ok','Form submissions → contacts ✓']]},{p:'Lighthouse audit'},{out:[['mut','Perf 98 · A11y 96 · SEO 100']]}]);
+    var base=/dashboard|ui/.test(ol)?[{c:'orbit ui scaffold',out:[['in','Generating layout…']]},{p:'Rendering'},{df:['dashboard/page.tsx','96','12']}]:[{c:'orbit web new landing',out:[['in','Scaffolding landing…']]},{p:'Build hero'},{df:['landing/page.tsx','124','0']}];
+    return base.concat([{c:'orbit wire form → contacts',out:[['ok','Form → contacts ✓']]},{p:'Lighthouse'},{out:[['mu','Perf 98 · SEO 100']]}]);
   }
   if(k==='luna'){
-    if(/sms|email|welcome|trigger/.test(ol))return[
-      {c:'orbit secrets check',out:[['ok','Twilio ✓  Resend ✓']]},
-      {c:'orbit fn deploy welcome-message',out:[['info','Deploying edge function…']]},
-      {p:'Installing trigger'},{df:['welcome-message.ts','71','0']},
-      {c:'orbit test send --dry-run',out:[['ok','✓ SMS + email confirmed']]}
-    ];
-    return[{c:'orbit gen api --route contacts',out:[['info','Scaffolding endpoint…']]},{p:'Build + auth guard'},{df:['api/contacts/route.ts','58','4']},{c:'orbit deploy --preview',out:[['ok','✓ Preview deployed']]}];
+    if(/sms|email|welcome/.test(ol))return[{c:'orbit secrets check',out:[['ok','Twilio ✓  Resend ✓']]},{c:'orbit fn deploy welcome',out:[['in','Deploying…']]},{p:'Install trigger'},{df:['welcome.ts','71','0']},{c:'orbit test send',out:[['ok','✓ SMS + email confirmed']]}];
+    return[{c:'orbit gen api --route contacts',out:[['in','Scaffolding…']]},{p:'Build + auth'},{df:['api/contacts/route.ts','58','4']},{c:'orbit deploy --preview',out:[['ok','✓ Preview live']]}];
   }
-  if(k==='rex')return[
-    {c:'orbit pipeline update --stage "Follow-up" --bulk',out:[['info','Syncing warm leads…']]},
-    {p:'Updating CRM stages'},
-    {out:[['mut','8 deals → stage "Proposal" · avg value $4.2k']]},
-    {c:'orbit task create --follow-up --bulk --all-warm',out:[['ok','✓ 12 follow-up tasks created']]}
-  ];
-  if(k==='vera')return[
-    {c:'orbit report weekly --workspace --all',out:[['info','Pulling workspace metrics…']]},
-    {p:'Aggregating KPIs'},
-    {out:[['mut','Pipeline: $42k · Deals: 23 · Win rate: 68%']]},
-    {c:'orbit alert set --threshold 0.70 --metric conversion',out:[['ok','✓ Alert triggers configured']]}
-  ];
+  if(k==='rex')return[{c:'orbit pipeline update --stage Follow-up',out:[['in','Syncing warm leads…']]},{p:'Updating stages'},{out:[['mu','8 deals → Proposal · avg $4.2k']]},{c:'orbit task create --follow-up --bulk',out:[['ok','✓ 12 follow-up tasks created']]}];
+  if(k==='vera')return[{c:'orbit report weekly --workspace',out:[['in','Pulling metrics…']]},{p:'Aggregating KPIs'},{out:[['mu','Pipeline: $42k · Win rate: 68%']]},{c:'orbit alert set --threshold 0.70',out:[['ok','✓ Alerts configured']]}];
   return[];
 }
 
-// Run a single agent
 async function runAgent(k,order){
-  setScreen(k,'work');
-  out('hdr','── '+k.toUpperCase()+' ─────────');
-  await wait(600);
+  setState(k,'work');setScreen(k,'work');
+  out('hd','── '+k.toUpperCase()+' ──────');
+  await wait(550);
   var ST=steps(k,order);
   for(var i=0;i<ST.length;i++){
     var s=ST[i];
     if(s.c)await typeCmd(s.c);
-    if(s.out)for(var j=0;j<s.out.length;j++){out(s.out[j][0],s.out[j][1]);await wait(260+Math.random()*180);}
+    if(s.out)for(var j=0;j<s.out.length;j++){out(s.out[j][0],s.out[j][1]);await wait(240+Math.random()*160);}
     if(s.p)await prog(s.p);
     if(s.df)diff(s.df[0],s.df[1],s.df[2]);
-    await wait(120);
+    await wait(110);
   }
   setScreen(k,'done');
-  await wait(2200);
+  await wait(2000);
   setScreen(k,'idle');
+  setState(k,'wander');
+  pickWander(AG[k]);
 }
 
-// Main dispatch
 var running=false;
 var pill=document.getElementById('pill');
 var dled=document.getElementById('dled');
@@ -716,49 +444,34 @@ async function run(order){
   if(running)return;
   running=true;runBtn.disabled=true;
   pill.textContent='DISPATCHING';
-  dled.className='status-dot s-red';
-  out('info','NOVA: all crew to briefing stations…');
-  setScreen('nova','work');
+  dled.className='dot dr';
+  out('in','NOVA: all crew to briefing positions…');
+  KEYS.forEach(function(k){setState(k,'meet');});
   await typeCmd('orbit dispatch "'+order+'"');
-  await wait(1200);
+  await wait(1400);
   var crew=route(order);
-  out('mut','Crew assigned: '+crew.map(function(k){return k.toUpperCase();}).join(', '));
-  await wait(400);
-  setScreen('nova','idle');
-  for(var i=0;i<crew.length;i++){
-    await runAgent(crew[i],order);
-    await wait(200);
-  }
-  out('ok','✔ Mission complete — all deliverables shipped.');
-  row('<span class="prompt">orbit &#10095; </span><span class="cur"></span>');
+  out('mu','Crew assigned: '+crew.map(function(k){return k.toUpperCase();}).join(', '));
+  await wait(350);
+  // non-assigned crew back to wander
+  KEYS.forEach(function(k){if(crew.indexOf(k)<0&&k!=='nova')setState(k,'wander');});
+  setState('nova','wander');
+  // run agents
+  for(var i=0;i<crew.length;i++){await runAgent(crew[i],order);await wait(180);}
+  out('ok','✔ Mission complete — deliverables shipped.');
+  row('<span class="pr">orbit &#10095; </span><span class="cur"></span>');
   pill.textContent='CREW READY';
-  dled.className='status-dot s-green';
+  dled.className='dot dg';
   running=false;runBtn.disabled=false;
 }
 
-// Chips
-var QUICK=[
-  'Find 100 businesses that need websites',
-  'Build a lead-capture landing page',
-  'Add an SMS + email welcome flow',
-  'Update sales pipeline + follow-ups',
-  'Generate weekly ops report',
-  'Full launch: CRM + leads + site + ops'
-];
+var QUICK=['Find 100 businesses that need websites','Build a lead-capture landing page','Add an SMS + email welcome flow','Update sales pipeline + follow-ups','Generate weekly ops report','Full launch: CRM + leads + site + ops'];
 var chips=document.getElementById('chips');
-QUICK.forEach(function(q){
-  var c=document.createElement('button');c.className='chip';c.textContent=q;
-  c.onclick=function(){if(running)return;document.getElementById('cmd').value=q;run(q);};
-  chips.appendChild(c);
-});
-runBtn.onclick=function(){var v=document.getElementById('cmd').value.trim();if(!v){out('warn','Type a mission order first.');return;}run(v);};
+QUICK.forEach(function(q){var c=document.createElement('button');c.className='chip';c.textContent=q;c.onclick=function(){if(running)return;document.getElementById('cmd').value=q;run(q);};chips.appendChild(c);});
+runBtn.onclick=function(){var v=document.getElementById('cmd').value.trim();if(!v){out('wa','Type a mission order first.');return;}run(v);};
 document.getElementById('cmd').addEventListener('keydown',function(e){if(e.key==='Enter'){var v=this.value.trim();if(v)run(v);}});
 
-// Boot message
-out('mut','Orbit Mission Deck online — 6-agent crew at stations.');
-out('mut','Select a chip or type a mission order to dispatch the crew.');
-row('<span class="prompt">orbit &#10095; </span><span class="cur"></span>');
+out('mu','Orbit Mission Deck online — 6-agent crew on deck.');
+out('mu','Crew wanders freely. Dispatch a mission to lock them in.');
+row('<span class="pr">orbit &#10095; </span><span class="cur"></span>');
 })();
-</script>
-</body>
-  </html>
+</script></body></html>

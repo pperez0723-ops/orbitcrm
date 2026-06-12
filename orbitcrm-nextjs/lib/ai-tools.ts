@@ -105,6 +105,12 @@ export async function runTool(
         source: args.source || 'other',
       }).select().single();
       if (error) return { error: error.message };
+      // fire contact_created automations instantly (welcome SMS, etc.)
+      try {
+        const { enrollContactInTrigger, processContactRunsNow } = await import('./engine');
+        await enrollContactInTrigger(admin, workspaceId, data.id, 'contact_created');
+        await processContactRunsNow(admin, workspaceId, data.id);
+      } catch { /* non-fatal */ }
       return { ok: true, contact: data };
     }
 

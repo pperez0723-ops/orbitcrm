@@ -1,717 +1,264 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
-// app/dashboard/crew/page.tsx ÃÂ¢ÃÂÃÂ Orbit Office
-// Canvas game loop. Agents walk between desks, idle-bob, type, think.
-// Large flat-art characters matching agent-office visual style.
+import { useEffect, useRef, useState } from 'react';
+import { createClient } from '@/lib/supabase-browser';
 
-import { useRef, useState, useEffect, useCallback } from 'react';
-
-type Line   = { cls: string; text: string };
-type AState = 'idle' | 'thinking' | 'working' | 'walking' | 'done';
-
-// ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Canvas constants ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-const W = 640;   // canvas width
-const H = 520;   // canvas height
-
-// ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ 4 crew desks ÃÂ¢ÃÂÃÂ exact pixel positions ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-const DESKS = [
-  { id: 'director',   name: 'Director',     role: 'coordinator',           color: '#e8303a', dx: 100, dy: 80  },
-  { id: 'researcher', name: 'Researcher',   role: 'intel ÃÂÃÂ· analysis',      color: '#37e0c5', dx: 390, dy: 80  },
-  { id: 'webdev',     name: 'Web Dev',      role: 'sites ÃÂÃÂ· ui',            color: '#a78bfa', dx: 100, dy: 310 },
-  { id: 'appdev',     name: 'App Dev',      role: 'backend ÃÂÃÂ· automations', color: '#f4b942', dx: 390, dy: 310 },
+const AGENTS = [
+{ key: 'nova', name: 'NOVA', role: 'Director', color: '#f0c96b', dx: 140, dy: 130 },
+{ key: 'astra', name: 'ASTRA', role: 'Lead Gen', color: '#00e5ff', dx: 320, dy: 100 },
+{ key: 'orion', name: 'ORION', role: 'Web Dev', color: '#a78bfa', dx: 520, dy: 115 },
+{ key: 'rex', name: 'REX', role: 'Sales', color: '#fb923c', dx: 180, dy: 310 },
+{ key: 'luna', name: 'LUNA', role: 'App Dev', color: '#f472b6', dx: 400, dy: 295 },
+{ key: 'vera', name: 'VERA', role: 'Ops', color: '#7dd3fc', dx: 640, dy: 320 },
 ];
+const WPT = [{x:120,y:200},{x:250,y:380},{x:390,y:440},{x:550,y:380},{x:700,y:420},{x:820,y:280},{x:700,y:160},{x:500,y:200},{x:300,y:260},{x:150,y:340},{x:450,y:310},{x:620,y:240},{x:350,y:170},{x:80,y:290},{x:760,y:350}];
+const MPT = [{x:340,y:220},{x:380,y:240},{x:420,y:220},{x:340,y:260},{x:380,y:280},{x:420,y:260}];
+const CHIPS = ['Find 100 businesses that need websites','Build a lead-capture landing page','Add an SMS + email welcome flow','Update sales pipeline + follow-ups','Generate weekly ops report','Full launch: CRM + leads + site'];
+const W = 900, H = 480;
 
-const QUICK = [
-  'Create a contact named Maria Lopez at Brightstar Realty and add a follow-up task',
-  'Add an automation: when a contact is created, send a welcome SMS and email',
-  'Analyze my pipeline and tell me which leads to prioritize',
-  'Draft a lead-capture landing page for Orbit',
-];
+export default function OfficePage() {
+const svgRef = useRef<SVGSVGElement>(null);
+const termRef = useRef<HTMLDivElement>(null);
+const [cmd, setCmd] = useState('');
+const [running, setRunning] = useState(false);
+const [status, setStatus] = useState('CREW READY');
+const [stats, setStats] = useState({ contacts: 0, deals: 0 });
 
-const EMOTE: Record<AState,string> = {
-  idle:'ÃÂ°ÃÂÃÂÃÂ', thinking:'ÃÂ°ÃÂÃÂÃÂ¡', working:'ÃÂ°ÃÂÃÂÃÂ»', walking:'ÃÂ°ÃÂÃÂÃÂ¶', done:'ÃÂ¢ÃÂÃÂ',
-};
+useEffect(() => {
+try {
+const sb = createClient();
+Promise.all([
+sb.from('contacts').select('id', { count: 'exact', head: true }),
+sb.from('deals').select('id', { count: 'exact', head: true }),
+]).then(([c, d]) => setStats({ contacts: c.count ?? 0, deals: d.count ?? 0 })).catch(() => {});
+} catch(_) {}
+}, []);
 
-// ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Wander spots (between desks) ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-const WANDERS = [
-  [270,200],[320,260],[240,300],[350,180],[280,350],[310,140],
-];
+useEffect(() => {
+const svg = svgRef.current; if (!svg) return;
+const NS = 'http://www.w3.org/2000/svg';
+svg.setAttribute('viewBox', '0 0 900 480');
+while(svg.firstChild) svg.removeChild(svg.firstChild);
+function el(t: string, a: Record<string,string|number>, par?: Element) { const e = document.createElementNS(NS,t); Object.entries(a).forEach(([k,v])=>e.setAttribute(k,String(v))); (par||svg!).appendChild(e); return e; }
+function elg(par?: Element) { const g=document.createElementNS(NS,'g'); (par||svg!).appendChild(g); return g; }
 
-// ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Agent state ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-interface Ag {
-  id:string; name:string; role:string; color:string;
-  deskX:number; deskY:number;   // where their desk is
-  px:number; py:number;         // current pixel pos (character foot)
-  tx:number; ty:number;         // walk target
-  state:AState;
-  bobPh:number;                 // idle bob phase
-  walkT:number; walkFr:number;  // walk animation
-  typeT:number; typeFr:number;  // typing animation
-  emote:string; emoteT:number;
-  wanderCD:number;              // countdown to next wander
+el('rect',{x:0,y:0,width:W,height:H,fill:'#030a12'});
+el('rect',{x:0,y:0,width:W,height:52,fill:'#060f1e'});
+el('rect',{x:0,y:50,width:W,height:2,fill:'#0e2840'});
+for(let i=0;i<9;i++) el('rect',{x:i*102,y:2,width:100,height:48,rx:2,fill:'#040c1a',stroke:'#0a1e30','stroke-width':.8});
+for(let i=0;i<5;i++){const cx=90+i*180; el('rect',{x:cx-28,y:44,width:56,height:6,rx:3,fill:'#00e5ff',opacity:.5}); el('ellipse',{cx,cy:120,rx:85,ry:70,fill:'#00e5ff',opacity:.025});}
+el('rect',{x:60,y:6,width:780,height:38,rx:4,fill:'#020810',stroke:'#1a3a5a','stroke-width':1.5});
+for(let i=0;i<110;i++) el('circle',{cx:+(65+Math.random()*770).toFixed(1),cy:+(9+Math.random()*30).toFixed(1),r:Math.random()<.12?1.3:.5,fill:'#fff',opacity:+(.25+Math.random()*.7).toFixed(2)});
+[[180,24,'#00e5ff',.8],[620,28,'#f0c96b',.7],[800,20,'#a78bfa',.75]].forEach(([cx,cy,cf,op])=>el('circle',{cx:+cx,cy:+cy,r:1.8,fill:cf as string,opacity:+op}));
+el('circle',{cx:740,cy:24,r:16,fill:'#122040',opacity:.9}); el('ellipse',{cx:740,cy:24,rx:24,ry:6,fill:'none',stroke:'#3a6090','stroke-width':1.5,opacity:.5});
+el('ellipse',{cx:300,cy:22,rx:80,ry:18,fill:'#00e5ff',opacity:.03}); el('ellipse',{cx:580,cy:20,rx:70,ry:15,fill:'#a78bfa',opacity:.035});
+el('rect',{x:0,y:52,width:W,height:22,fill:'#040c1a'}); el('rect',{x:0,y:74,width:W,height:1,fill:'#0e2840'});
+const SC=['SYS:NOMINAL','ORBIT:STABLE','CREW:6','AI:ONLINE'];const FC=['#00e5ff','#36d399','#f0c96b','#a78bfa'];
+SC.forEach((s,i)=>{const t=el('text',{x:55+i*218,y:67,fill:FC[i],'font-family':"'JetBrains Mono'",'font-size':9.5,opacity:.75}); t.textContent=s;});
+el('rect',{x:0,y:52,width:20,height:H-52,fill:'#04101e',stroke:'#0e2840','stroke-width':.8}); el('rect',{x:W-20,y:52,width:20,height:H-52,fill:'#04101e',stroke:'#0e2840','stroke-width':.8});
+['#36d399','#f4b942','#00e5ff','#a78bfa','#fb923c','#e8303a'].forEach((c,i)=>el('rect',{x:3,y:90+i*28,width:14,height:4,rx:1,fill:c,opacity:.6}));
+['#7dd3fc','#f472b6','#fb923c','#a78bfa','#00e5ff','#36d399'].forEach((c,i)=>el('rect',{x:W-17,y:90+i*28,width:14,height:4,rx:1,fill:c,opacity:.6}));
+el('rect',{x:20,y:75,width:W-40,height:H-75,fill:'#030b18'});
+for(let i=0;i<8;i++) el('line',{x1:20,y1:96+i*52,x2:W-20,y2:96+i*52,stroke:'#08192c','stroke-width':.7,opacity:+(1-i*.11).toFixed(2)});
+for(let i=0;i<11;i++) el('line',{x1:20+i*88,y1:75,x2:20+i*88,y2:H,stroke:'#08192c','stroke-width':.5,opacity:.5});
+el('rect',{x:20,y:H-11,width:W-40,height:1.5,fill:'#00e5ff',opacity:.15});
+el('rect',{x:845,y:140,width:32,height:60,rx:2,fill:'#050e1c',stroke:'#0e2840','stroke-width':1});
+for(let i=0;i<8;i++) el('rect',{x:848,y:145+i*7,width:26,height:3,rx:1,fill:i%2?'#00e5ff':'#36d399',opacity:.55});
+[[38,450],[450,458],[860,450]].forEach(([px,py])=>{el('rect',{x:px-4,y:py-2,width:8,height:9,rx:2,fill:'#5a2e10'}); el('circle',{cx:px,cy:py-5,r:7,fill:'#226644'}); el('circle',{cx:px-5,cy:py-1,r:4,fill:'#2a8055'}); el('circle',{cx:px+5,cy:py-1,r:4,fill:'#1e6644'});});
+el('rect',{x:22,y:180,width:70,height:50,rx:2,fill:'#070f1e',stroke:'#1a3050','stroke-width':1.5}); el('rect',{x:26,y:184,width:62,height:40,fill:'#0a1624'});
+el('polyline',{points:'30,218 38,206 46,212 58,198 66,204 76,194',fill:'none',stroke:'#00e5ff','stroke-width':1.5});
+const bbt=el('text',{x:57,y:240,'text-anchor':'middle',fill:'#2a4a6a','font-family':"'Press Start 2P'",'font-size':5}); bbt.textContent='BRIEFING';
+
+const SCREENS: Record<string,Element[]>={}, GLOWS: Record<string,Element>={};
+function buildDesk(key:string,dx:number,dy:number,color:string){
+const g=elg(svg!);
+el('ellipse',{cx:dx+27,cy:dy+46,rx:14,ry:6,fill:'#05101e',stroke:'#0c2035','stroke-width':1.5},g);
+el('rect',{x:dx,y:dy,width:55,height:24,rx:2,fill:'#08182c',stroke:'#102238','stroke-width':1},g);
+el('rect',{x:dx,y:dy+22,width:55,height:8,rx:1,fill:'#060f20'},g);
+GLOWS[key]=el('rect',{x:dx-4,y:dy-4,width:63,height:36,rx:4,fill:color,opacity:0},g);
+el('rect',{x:dx+4,y:dy+3,width:20,height:14,rx:1,fill:'#020810',stroke:color+'55','stroke-width':1},g);
+SCREENS[key]=[el('rect',{x:dx+5,y:dy+4,width:18,height:12,rx:.5,fill:'#08101c'},g)];
+el('rect',{x:dx+28,y:dy+3,width:20,height:14,rx:1,fill:'#020810',stroke:color+'44','stroke-width':1},g);
+SCREENS[key].push(el('rect',{x:dx+29,y:dy+4,width:18,height:12,rx:.5,fill:'#08101c'},g));
+el('rect',{x:dx+6,y:dy+22,width:32,height:5,rx:1,fill:'#060d1c'},g);
+el('circle',{cx:dx+44,cy:dy+25,r:2,fill:color,opacity:.7},g);
+el('circle',{cx:dx+50,cy:dy+25,r:2,fill:'#36d399',opacity:.6},g);
 }
-
-function mkAg(d: typeof DESKS[0]): Ag {
-  // character sits in front of desk
-  const px = d.dx + 65, py = d.dy + 20;
-  return {
-    id:d.id, name:d.name, role:d.role, color:d.color,
-    deskX:d.dx, deskY:d.dy,
-    px, py, tx:px, ty:py,
-    state:'idle', bobPh:Math.random()*Math.PI*2,
-    walkT:0, walkFr:0, typeT:0, typeFr:0,
-    emote:EMOTE.idle, emoteT:0,
-    wanderCD: Math.random()*200+100,
-  };
+AGENTS.forEach(a=>buildDesk(a.key,a.dx,a.dy,a.color));
+function setScreen(name:string,mode:string){
+const arr=SCREENS[name]; if(!arr) return; const g=GLOWS[name];
+if(mode==='work'){arr[0].setAttribute('fill','#e8303a');arr[1].setAttribute('fill','#c02828');g?.setAttribute('opacity','0.1');}
+else if(mode==='done'){arr[0].setAttribute('fill','#1f9f76');arr[1].setAttribute('fill','#147055');g?.setAttribute('opacity','0.07');}
+else{arr[0].setAttribute('fill','#08101c');arr[1].setAttribute('fill','#08101c');g?.setAttribute('opacity','0');}
 }
-
-// ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-// DRAWING
-// ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-
-function drawRoom(c: CanvasRenderingContext2D) {
-  // Floor ÃÂ¢ÃÂÃÂ warm grey (agent-office: #2d2d3d)
-  c.fillStyle = '#2d2d3d';
-  c.fillRect(0, 0, W, H);
-
-  // Inner work floor
-  c.fillStyle = '#33334a';
-  c.fillRect(20, 20, W-40, H-40);
-
-  // Top-left zone tint (meeting / purple)
-  c.fillStyle = 'rgba(53,42,69,0.7)';
-  c.fillRect(20, 20, W/2-10, H/2-10);
-
-  // Top-right zone tint (collab / warm)
-  c.fillStyle = 'rgba(61,48,37,0.7)';
-  c.fillRect(W/2+10, 20, W/2-30, H/2-10);
-
-  // Bottom zone tint (general)
-  c.fillStyle = 'rgba(30,30,50,0.4)';
-  c.fillRect(20, H/2+10, W-40, H/2-30);
-
-  // Top wall
-  c.fillStyle = '#1a1a2e';
-  c.fillRect(0, 0, W, 20);
-  c.fillStyle = '#2a2a45';
-  c.fillRect(0, 18, W, 3);
-
-  // Bottom wall
-  c.fillStyle = '#1a1a2e';
-  c.fillRect(0, H-20, W, 20);
-
-  // Left wall
-  c.fillStyle = '#1e1e30';
-  c.fillRect(0, 0, 20, H);
-
-  // Right wall
-  c.fillStyle = '#1e1e30';
-  c.fillRect(W-20, 0, 20, H);
-
-  // Windows on top wall
-  drawWin(c, 60,  2, 80, 16);
-  drawWin(c, 260, 2, 80, 16);
-  drawWin(c, 480, 2, 80, 16);
-
-  // Horizontal center divider line
-  c.strokeStyle = '#2a2a42';
-  c.lineWidth = 1.5;
-  c.beginPath(); c.moveTo(20, H/2); c.lineTo(W-20, H/2); c.stroke();
-  // Vertical center divider
-  c.beginPath(); c.moveTo(W/2, 20); c.lineTo(W/2, H-20); c.stroke();
-
-  // Center Orbit rug
-  c.save();
-  c.fillStyle = 'rgba(108,92,231,0.18)';
-  c.beginPath(); c.ellipse(W/2, H/2, 80, 50, 0, 0, Math.PI*2); c.fill();
-  c.strokeStyle = 'rgba(108,92,231,0.4)';
-  c.lineWidth = 2;
-  c.beginPath(); c.ellipse(W/2, H/2, 80, 50, 0, 0, Math.PI*2); c.stroke();
-  c.font = 'bold 18px "Rajdhani",sans-serif';
-  c.fillStyle = '#e8303a';
-  c.textAlign = 'center';
-  c.fillText('ORBIT', W/2, H/2+6);
-  c.restore();
-
-  // Plants
-  drawPlant(c, 28, 50);
-  drawPlant(c, 28, 280);
-  drawPlant(c, W-48, 50);
-  drawPlant(c, W-48, 280);
-  drawPlant(c, W/2-16, H-52);
+function makeAstro(par:Element,color:string,name:string,role:string){
+const g=elg(par); el('ellipse',{cx:0,cy:10,rx:8,ry:2.5,fill:'#000',opacity:.35},g);
+const bl=el('rect',{x:-5,y:5,width:4,height:5,rx:1.5,fill:'#c8d8e8'},g);
+const br=el('rect',{x:1,y:5,width:4,height:5,rx:1.5,fill:'#c8d8e8'},g);
+const body=elg(g);
+el('rect',{x:-5,y:-5,width:10,height:11,rx:4,fill:'#e0eaf4'},body);
+el('rect',{x:-5,y:-1,width:10,height:3,fill:color,opacity:.85},body);
+el('rect',{x:-2,y:-2,width:4,height:3,rx:.8,fill:color},body);
+el('rect',{x:-8,y:-4,width:3,height:7,rx:1.5,fill:'#ccd8e8'},body);
+el('rect',{x:5,y:-4,width:3,height:7,rx:1.5,fill:'#ccd8e8'},body);
+el('ellipse',{cx:-6.5,cy:3,rx:2.5,ry:2,fill:color,opacity:.8},body);
+el('ellipse',{cx:6.5,cy:3,rx:2.5,ry:2,fill:color,opacity:.8},body);
+el('circle',{cx:0,cy:-10,r:6.5,fill:'#eaf2fc'},body);
+el('path',{d:'M-4.5 -11.5 a4.5 4.5 0 0 1 9 0 a4.5 4.5 0 0 1 -9 0Z',fill:'#07101e'},body);
+el('ellipse',{cx:-1.5,cy:-12,rx:2,ry:1.4,fill:color,opacity:.7},body);
+el('path',{d:'M-3.5 -11.5 a3.5 3.5 0 0 1 7 0 a3.5 3.5 0 0 1 -7 0Z',fill:color,opacity:0},body);
+el('line',{x1:0,y1:-17,x2:0,y2:-14,stroke:color,'stroke-width':1.4},body);
+el('circle',{cx:0,cy:-18,r:2,fill:color,opacity:.85},body);
+const nt=el('text',{x:0,y:22,'text-anchor':'middle',fill:color,'font-family':"'Press Start 2P'",'font-size':5,opacity:.95},g); nt.textContent=name;
+const rt=el('text',{x:0,y:31,'text-anchor':'middle',fill:color,'font-family':"'JetBrains Mono'",'font-size':7.5,opacity:.8},g); rt.textContent=role;
+const zg=elg(g);
+if(!document.getElementById('orb-zzz')){const st=document.createElement('style');st.id='orb-zzz';st.textContent='.ozg text{opacity:0}.ozs .oz1{animation:ozf 2.2s ease-in-out infinite}.ozs .oz2{animation:ozf 2.2s ease-in-out infinite .55s}.ozs .oz3{animation:ozf 2.2s ease-in-out infinite 1.1s}@keyframes ozf{0%{opacity:0;transform:translate(0,0)}30%{opacity:.9}100%{opacity:0;transform:translate(4px,-11px)}}';document.head.appendChild(st);}
+zg.classList.add('ozg');
+const z1=el('text',{x:7,y:-18,fill:'#aaddc8','font-family':"'Press Start 2P'",'font-size':4.5},zg); z1.textContent='z'; z1.classList.add('oz1');
+const z2=el('text',{x:10,y:-22,fill:'#aaddc8','font-family':"'Press Start 2P'",'font-size':5.5},zg); z2.textContent='z'; z2.classList.add('oz2');
+const z3=el('text',{x:13,y:-26,fill:'#aaddc8','font-family':"'Press Start 2P'",'font-size':6.5},zg); z3.textContent='z'; z3.classList.add('oz3');
+return {g,bl,br,body,zg,color};
 }
-
-function drawWin(c: CanvasRenderingContext2D, x:number,y:number,w:number,h:number) {
-  c.fillStyle = '#0d1a2e';
-  c.fillRect(x, y, w, h);
-  c.fillStyle = '#0a2050';
-  c.fillRect(x+2, y+2, w/2-3, h-4);
-  c.fillStyle = '#0a1a40';
-  c.fillRect(x+w/2+1, y+2, w/2-3, h-4);
-  // divider
-  c.fillStyle = '#1e2a40';
-  c.fillRect(x+w/2-1, y, 2, h);
-  // stars
-  c.fillStyle = 'rgba(255,255,255,0.8)';
-  [[x+8,y+4],[x+20,y+6],[x+w/2+8,y+4],[x+w/2+20,y+6]].forEach(([sx,sy])=>{
-    c.fillRect(sx,sy,1.5,1.5);
-  });
+interface Agent{g:Element;bl:Element;br:Element;body:Element;zg:Element;color:string;x:number;y:number;tx:number;ty:number;state:string;pause:number;phase:number;speed:number;meetIdx:number;key:string;}
+const AG: Record<string,Agent>={};
+AGENTS.forEach((a,i)=>{
+const sx=a.dx+27, sy=a.dy+50;
+const spr=makeAstro(svg!,a.color,a.name,a.role);
+AG[a.key]={...spr,x:sx,y:sy,tx:sx,ty:sy,state:'wander',pause:Math.random()*3,phase:Math.random()*6,speed:28+Math.random()*14,meetIdx:i,key:a.key};
+spr.g.setAttribute('transform','translate('+sx+','+sy+')');
+});
+function deskPos(key:string){const a=AGENTS.find(x=>x.key===key)!; return {x:a.dx+27,y:a.dy+50};}
+function pickWander(a:Agent){const w=WPT[Math.floor(Math.random()*WPT.length)]; a.tx=Math.max(35,Math.min(865,w.x+(Math.random()*30-15))); a.ty=Math.max(90,Math.min(460,w.y+(Math.random()*20-10)));}
+let last=0, raf=0;
+function frame(t:number){
+const dt=Math.min(.05,(t-last)/1000||0); last=t;
+Object.values(AG).forEach(a=>{
+if(a.state==='work'){
+const dp=deskPos(a.key); a.x=dp.x; a.y=dp.y; a.tx=dp.x; a.ty=dp.y;
+a.g.setAttribute('transform','translate('+a.x.toFixed(1)+','+a.y.toFixed(1)+')');
+a.zg.classList.remove('ozs'); return;
 }
-
-function drawPlant(c: CanvasRenderingContext2D, x:number, y:number) {
-  // pot
-  c.fillStyle = '#6d4c41';
-  c.fillRect(x+3, y+16, 14, 12);
-  c.fillStyle = '#795548';
-  c.fillRect(x+5, y+18, 10, 8);
-  // leaves
-  c.fillStyle = '#2e7d32';
-  c.beginPath(); c.arc(x+10, y+12, 10, 0, Math.PI*2); c.fill();
-  c.fillStyle = '#388e3c';
-  c.beginPath(); c.arc(x+5,  y+14, 7,  0, Math.PI*2); c.fill();
-  c.beginPath(); c.arc(x+15, y+14, 7,  0, Math.PI*2); c.fill();
-  c.fillStyle = '#1b5e20';
-  c.beginPath(); c.arc(x+10, y+6,  6,  0, Math.PI*2); c.fill();
+if(a.state==='meet'){const m=MPT[a.meetIdx]; a.tx=m.x; a.ty=m.y;}
+const dx=a.tx-a.x, dy=a.ty-a.y, dist=Math.hypot(dx,dy); let moving=dist>1.5;
+if(a.state==='wander'&&dist<=2){if(a.pause<=0)a.pause=0.8+Math.random()*3; else{a.pause-=dt; if(a.pause<=0)pickWander(a);} moving=false;}
+if(moving){const sp=a.speed*dt; a.x+=dx/dist*Math.min(sp,dist); a.y+=dy/dist*Math.min(sp,dist); a.phase+=dt*10; a.body.setAttribute('transform','translate(0,'+Math.sin(a.phase)*.8+')'); a.bl.setAttribute('y',String(5+Math.sin(a.phase)*2)); a.br.setAttribute('y',String(5-Math.sin(a.phase)*2));}
+else{a.bl.setAttribute('y','5'); a.br.setAttribute('y','5'); a.body.setAttribute('transform','translate(0,0)');}
+if(!moving&&a.state==='wander')a.zg.classList.add('ozs'); else a.zg.classList.remove('ozs');
+a.g.setAttribute('transform','translate('+a.x.toFixed(1)+','+a.y.toFixed(1)+')');
+});
+raf=requestAnimationFrame(frame);
 }
+raf=requestAnimationFrame(frame);
+(window as any).__OS={setS:(k:string,s:string)=>{if(AG[k])AG[k].state=s;},pw:(k:string)=>{if(AG[k])pickWander(AG[k]);},scr:setScreen};
+return ()=>cancelAnimationFrame(raf);
+},[]);
 
-// ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ BIG FLAT-ART DESK (matching agent-office style) ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-function drawDesk(c: CanvasRenderingContext2D, d: typeof DESKS[0], state: AState, t: number) {
-  const {dx,dy,color} = d;
-  const W2 = 140, H2 = 70;
-
-  // Desk body ÃÂ¢ÃÂÃÂ dark with color accent border
-  c.fillStyle = '#1e1630';
-  roundRect(c, dx, dy+40, W2, H2, 10);
-  c.fillStyle = '#241c3a';
-  roundRect(c, dx+2, dy+42, W2-4, H2-4, 8);
-
-  // Color accent top edge
-  c.fillStyle = color;
-  roundRect(c, dx, dy+40, W2, 5, 3);
-
-  // Monitor / screen on desk
-  const mw = 88, mh = 58;
-  const mx = dx + W2/2 - mw/2, my = dy-10;
-
-  // Screen bezel
-  c.fillStyle = '#12101e';
-  roundRect(c, mx-4, my-4, mw+8, mh+8, 6);
-  // Screen
-  c.fillStyle = '#0d1a2e';
-  roundRect(c, mx, my, mw, mh, 4);
-
-  // Screen content
-  if (state === 'working') {
-    const cur = Math.floor(t/400) % 2 === 0;
-    // code lines
-    c.fillStyle = color + 'dd';
-    c.fillRect(mx+6, my+8,  50, 5);
-    c.fillStyle = '#37e0c5aa';
-    c.fillRect(mx+6, my+17, 35, 5);
-    c.fillStyle = '#fdcb6eaa';
-    c.fillRect(mx+6, my+26, 45, 5);
-    c.fillStyle = '#a78bfaaa';
-    c.fillRect(mx+6, my+35, 28, 5);
-    c.fillStyle = '#36d399aa';
-    c.fillRect(mx+6, my+44, 40, 5);
-    if (cur) {
-      c.fillStyle = '#fff';
-      c.fillRect(mx+6, my+8, 2, 6);
-    }
-  } else if (state === 'thinking') {
-    // Pulsing dots
-    for (let i=0;i<3;i++) {
-      const phase = ((t/500) + i*0.33) % 1;
-      const alpha = Math.sin(phase * Math.PI);
-      c.fillStyle = color + Math.floor(alpha*255).toString(16).padStart(2,'0');
-      c.beginPath();
-      c.arc(mx+20+i*22, my+mh/2, 6+alpha*3, 0, Math.PI*2);
-      c.fill();
-    }
-  } else {
-    // Idle ÃÂ¢ÃÂÃÂ dim lines
-    c.fillStyle = color + '40';
-    c.fillRect(mx+6, my+10, 40, 4);
-    c.fillStyle = '#ffffff20';
-    c.fillRect(mx+6, my+20, 55, 4);
-    c.fillRect(mx+6, my+30, 32, 4);
-  }
-
-  // Monitor stand
-  c.fillStyle = '#2a2040';
-  c.fillRect(mx+mw/2-4, my+mh, 8, 12);
-  c.fillRect(mx+mw/2-12, my+mh+10, 24, 4);
-
-  // Keyboard on desk surface
-  c.fillStyle = '#2a2040';
-  roundRect(c, dx+10, dy+52, 70, 22, 4);
-  c.fillStyle = '#332a50';
-  roundRect(c, dx+12, dy+54, 66, 18, 3);
-  // Key rows
-  c.fillStyle = '#1e1630';
-  for (let r=0;r<2;r++) for (let k=0;k<6;k++) {
-    c.fillRect(dx+14+k*10, dy+56+r*8, 8, 5);
-  }
-
-  // Mouse
-  c.fillStyle = '#2a2040';
-  roundRect(c, dx+88, dy+56, 20, 16, 6);
-  c.fillStyle = '#1a1030';
-  c.fillRect(dx+97, dy+56, 1, 8);
-
-  // Desk legs
-  c.fillStyle = '#1a1028';
-  c.fillRect(dx+8,      dy+105, 10, 10);
-  c.fillRect(dx+W2-18,  dy+105, 10, 10);
+function addRow(html:string){if(!termRef.current)return null;const l=document.createElement('div');l.style.cssText='font-family:JetBrains Mono,monospace;font-size:11.5px;line-height:1.7;padding:1px 0';l.innerHTML=html;termRef.current.appendChild(l);termRef.current.scrollTop=termRef.current.scrollHeight;return l;}
+const C: Record<string,string>={ok:'#36d399',wa:'#f4b942',inf:'#00e5ff',mu:'#5a8aaa',hd:'#2a4a6a',fi:'#a78bfa'};
+function tOut(cls:string,txt:string){addRow("<span style='color:"+(C[cls]||'#dff0ff')+"'>"+txt.replace(/&/g,'&amp;').replace(/</g,'&lt;')+"</span>");}
+function tw(ms:number){return new Promise<void>(r=>setTimeout(r,ms));}
+async function typeCmd(txt:string){
+const l=addRow("<span style='color:#ff5d66'>orbit &#10095; </span><span></span><span style='display:inline-block;width:6px;height:11px;background:#e8303a;vertical-align:-2px;animation:ocur 1s steps(1) infinite'></span>");
+if(!l)return; const sp=l.querySelectorAll('span')[1] as HTMLElement; const cur=l.querySelectorAll('span')[2] as HTMLElement;
+for(let i=0;i<txt.length;i++){sp.textContent+=txt[i]; await tw(9+Math.random()*14);} cur?.remove();
 }
-
-// ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ BIG FLAT-ART CHARACTER (like agent-office) ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-function drawChar(c: CanvasRenderingContext2D, ag: Ag, t: number) {
-  const bob = ag.state === 'idle' ? Math.sin(t/700 + ag.bobPh) * 3 : 0;
-  const x = Math.round(ag.px);
-  const y = Math.round(ag.py + bob);
-  const col = ag.color;
-
-  // Shadow
-  c.fillStyle = 'rgba(0,0,0,0.3)';
-  c.beginPath();
-  c.ellipse(x, y+70, 28, 8, 0, 0, Math.PI*2);
-  c.fill();
-
-  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Legs ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-  if (ag.state === 'walking') {
-    const sw = Math.sin(t/140) * 10;
-    // Left leg
-    c.fillStyle = '#2d3436';
-    c.fillRect(x-18, y+42, 14, 28+sw);
-    // Right leg
-    c.fillRect(x+4,  y+42, 14, 28-sw);
-    // Feet
-    c.fillStyle = '#1a1a1a';
-    roundRect(c, x-20, y+68+sw, 17, 8, 3);
-    roundRect(c, x+3,  y+60-sw, 17, 8, 3);
-  } else {
-    c.fillStyle = '#2d3436';
-    c.fillRect(x-18, y+42, 14, 26);
-    c.fillRect(x+4,  y+42, 14, 26);
-    c.fillStyle = '#1a1a1a';
-    roundRect(c, x-20, y+66, 17, 8, 3);
-    roundRect(c, x+3,  y+66, 17, 8, 3);
-  }
-
-  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Body (shirt) ÃÂ¢ÃÂÃÂ BIG rounded rect like agent-office ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-  c.fillStyle = col;
-  roundRect(c, x-22, y+16, 44, 30, 12);
-
-  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Arms ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-  if (ag.state === 'working') {
-    const ta = ag.typeFr % 2 === 0 ? -4 : 4;
-    c.fillStyle = col;
-    roundRect(c, x-36, y+18+ta, 16, 22, 8);
-    roundRect(c, x+20, y+18-ta, 16, 22, 8);
-    // Hands reaching forward
-    c.fillStyle = '#deb887';
-    c.beginPath(); c.arc(x-28, y+38+ta, 8, 0, Math.PI*2); c.fill();
-    c.beginPath(); c.arc(x+28, y+38-ta, 8, 0, Math.PI*2); c.fill();
-  } else if (ag.state === 'walking') {
-    const sw = Math.sin(t/140+Math.PI) * 12;
-    c.fillStyle = col;
-    roundRect(c, x-36, y+18, 16, 22+sw, 8);
-    roundRect(c, x+20, y+18, 16, 22-sw, 8);
-    c.fillStyle = '#deb887';
-    c.beginPath(); c.arc(x-28, y+40+sw, 8, 0, Math.PI*2); c.fill();
-    c.beginPath(); c.arc(x+28, y+40-sw, 8, 0, Math.PI*2); c.fill();
-  } else {
-    c.fillStyle = col;
-    roundRect(c, x-36, y+18, 16, 24, 8);
-    roundRect(c, x+20, y+18, 16, 24, 8);
-    c.fillStyle = '#deb887';
-    c.beginPath(); c.arc(x-28, y+42, 8, 0, Math.PI*2); c.fill();
-    c.beginPath(); c.arc(x+28, y+42, 8, 0, Math.PI*2); c.fill();
-  }
-
-  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Neck ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-  c.fillStyle = '#deb887';
-  roundRect(c, x-8, y+6, 16, 12, 4);
-
-  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Head ÃÂ¢ÃÂÃÂ big round ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-  c.fillStyle = '#deb887';
-  c.beginPath(); c.arc(x, y, 26, 0, Math.PI*2); c.fill();
-
-  // Hair (solid dark cap ÃÂ¢ÃÂÃÂ different per color)
-  const hairMap: Record<string,string> = {
-    '#e8303a':'#3e1f10','#37e0c5':'#0d3028','#a78bfa':'#1a0d30','#f4b942':'#2e1c00',
-  };
-  c.fillStyle = hairMap[col] || '#2c1810';
-  c.beginPath();
-  c.arc(x, y-4, 26, Math.PI, 0);
-  c.fill();
-  // Side hair
-  c.beginPath(); c.arc(x-22, y+2, 10, Math.PI/2, -Math.PI/2); c.fill();
-
-  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Eyes ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-  const blink = ag.state === 'thinking' && Math.floor(t/160) % 9 === 0;
-  c.fillStyle = '#fff';
-  if (!blink) {
-    c.beginPath(); c.arc(x-9, y+2, 7, 0, Math.PI*2); c.fill();
-    c.beginPath(); c.arc(x+9, y+2, 7, 0, Math.PI*2); c.fill();
-    c.fillStyle = '#2d3436';
-    c.beginPath(); c.arc(x-9, y+3, 4, 0, Math.PI*2); c.fill();
-    c.beginPath(); c.arc(x+9, y+3, 4, 0, Math.PI*2); c.fill();
-    // Pupils
-    c.fillStyle = '#000';
-    c.beginPath(); c.arc(x-8, y+3, 2, 0, Math.PI*2); c.fill();
-    c.beginPath(); c.arc(x+10, y+3, 2, 0, Math.PI*2); c.fill();
-  } else {
-    // Blink lines
-    c.fillStyle = '#2d3436';
-    c.fillRect(x-14, y+3, 11, 2);
-    c.fillRect(x+5,  y+3, 11, 2);
-  }
-
-  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Mouth ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-  c.strokeStyle = ag.state === 'done' ? '#00b894' : '#b0896a';
-  c.lineWidth = 2;
-  c.beginPath();
-  if (ag.state === 'working' || ag.state === 'done') {
-    c.arc(x, y+12, 7, 0.1, Math.PI-0.1);
-  } else {
-    c.moveTo(x-6, y+12); c.lineTo(x+6, y+12);
-  }
-  c.stroke();
+async function tProg(lbl:string){
+const l=addRow("<span style='color:#5a8aaa'>"+lbl+" </span><span></span>");
+const b=l?.querySelectorAll('span')[1] as HTMLElement;
+const bars=['░'.repeat(10),'▓▓▓'+'░'.repeat(7),'▓'.repeat(6)+'░'.repeat(4),'▓'.repeat(9)+'░','▓'.repeat(10)];
+for(let i=0;i<bars.length;i++){if(b)b.textContent=bars[i]+' '+(i*25)+'%'; termRef.current&&(termRef.current.scrollTop=termRef.current.scrollHeight); await tw(110);}
+if(b)b.innerHTML='▓'.repeat(10)+' <span style="color:#36d399">DONE</span>';
 }
-
-// ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Emote bubble ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-function drawEmote(c: CanvasRenderingContext2D, ag: Ag) {
-  if (ag.state === 'idle' || ag.emoteT <= 0) return;
-  const alpha = Math.min(1, ag.emoteT / 40);
-  const x = Math.round(ag.px), y = Math.round(ag.py);
-  c.save();
-  c.globalAlpha = alpha;
-  c.fillStyle = '#1e1630';
-  c.strokeStyle = ag.color;
-  c.lineWidth = 2;
-  roundRect(c, x-20, y-52, 42, 30, 8);
-  c.fill(); c.stroke();
-  // tail
-  c.beginPath(); c.moveTo(x-4, y-22); c.lineTo(x, y-14); c.lineTo(x+8, y-22); c.fill();
-  c.font = '18px serif';
-  c.textAlign = 'center';
-  c.fillText(ag.emote, x+1, y-30);
-  c.restore();
+function route(o:string):string[]{
+const ol=o.toLowerCase(); const s:Record<string,boolean>={};
+if(/research|find|analyz|lead|business|prospect/.test(ol))s.astra=true;
+if(/landing|web|page|site|seo|design|ui/.test(ol))s.orion=true;
+if(/app|automat|backend|api|sms|email|crm|trigger|contact/.test(ol))s.luna=true;
+if(/sales|pipeline|deal|close|quota|follow.?up/.test(ol))s.rex=true;
+if(/ops|report|analytic|metric|kpi|monitor/.test(ol))s.vera=true;
+if(/everything|whole|full|launch|mvp|all/.test(ol)){s.astra=true;s.orion=true;s.luna=true;s.rex=true;s.vera=true;}
+const k=Object.keys(s); return k.length?k:['astra','luna'];
 }
-
-// ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ roundRect helper ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-function roundRect(c: CanvasRenderingContext2D, x:number,y:number,w:number,h:number,r:number) {
-  c.beginPath();
-  c.moveTo(x+r, y);
-  c.lineTo(x+w-r, y);
-  c.quadraticCurveTo(x+w, y, x+w, y+r);
-  c.lineTo(x+w, y+h-r);
-  c.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
-  c.lineTo(x+r, y+h);
-  c.quadraticCurveTo(x, y+h, x, y+h-r);
-  c.lineTo(x, y+r);
-  c.quadraticCurveTo(x, y, x+r, y);
-  c.closePath();
-  c.fill();
+type Step={c?:string;out?:[string,string][];p?:string;df?:string[]};
+function agSteps(k:string,o:string):Step[]{
+const ol=o.toLowerCase();
+if(k==='astra')return[{c:'orbit leadgen --needs-website',out:[['inf','Scanning...']]},{p:'Filtering'},{out:[['mu','100 biz to pipeline']]},{c:'orbit draft-sms',out:[['ok','SMS drafted']]}];
+if(k==='orion')return /dashboard|ui/.test(ol)?[{c:'orbit ui scaffold',out:[['inf','Generating...']]},{p:'Render'},{df:['dashboard/page.tsx','96','12']}]:[{c:'orbit web new landing',out:[['inf','Scaffolding...']]},{p:'Build'},{df:['landing/page.tsx','124','0']},{out:[['ok','Perf 98 SEO 100']]}];
+if(k==='luna')return /sms|email|welcome/.test(ol)?[{c:'orbit fn deploy welcome',out:[['inf','Deploying...']]},{p:'Trigger'},{out:[['ok','Confirmed']]}]:[{c:'orbit gen api --contacts',out:[['inf','Scaffolding...']]},{p:'Build'},{out:[['ok','Preview live']]}];
+if(k==='rex')return[{c:'orbit pipeline update --bulk',out:[['inf','Syncing...']]},{p:'Updating'},{out:[['mu','8 deals to Proposal']]},{out:[['ok','12 follow-ups set']]}];
+if(k==='vera')return[{c:'orbit report weekly',out:[['inf','Pulling...']]},{p:'Aggregating'},{out:[['mu','42k 68pct win']]},{out:[['ok','Alerts set']]}];
+return[];
 }
-
-// ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-// React Component
-// ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-export default function CrewPage() {
-  const [order,    setOrder]   = useState('');
-  const [running,  setRunning] = useState(false);
-  const [lines,    setLines]   = useState<Line[]>([
-    { cls:'mut', text:'// Orbit Office ÃÂ¢ÃÂÃÂ crew on standby.' },
-    { cls:'mut', text:'// Send an order below. Agents actually work on your CRM.' },
-  ]);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const termRef   = useRef<HTMLDivElement>(null);
-  const agsRef    = useRef<Ag[]>(DESKS.map(mkAg));
-  const sMapRef   = useRef<Record<string,AState>>({
-    director:'idle', researcher:'idle', webdev:'idle', appdev:'idle',
-  });
-  const rafRef  = useRef(0);
-  const lastRef = useRef(0);
-
-  useEffect(() => {
-    if (termRef.current) termRef.current.scrollTop = termRef.current.scrollHeight;
-  }, [lines]);
-
-  const push = useCallback((l:Line) => setLines(p=>[...p,l]), []);
-
-  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Game loop ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-  useEffect(() => {
-    const canvas = canvasRef.current; if (!canvas) return;
-    const ctx = canvas.getContext('2d')!; if (!ctx) return;
-
-    // per-agent wander countdown
-    const wcd: Record<string,number> = {};
-    DESKS.forEach(d => { wcd[d.id] = Math.random()*200+80; });
-
-    function tick(now: number) {
-      const dt = Math.min(now - (lastRef.current||now), 50);
-      lastRef.current = now;
-
-      // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Draw scene ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-      ctx.clearRect(0, 0, W, H);
-      drawRoom(ctx);
-
-      const ags = agsRef.current;
-
-      // Sort by py so lower agents draw on top
-      const sorted = [...ags].sort((a,b) => a.py - b.py);
-
-      // Draw all desks first
-      DESKS.forEach(d => {
-        const ag = ags.find(a=>a.id===d.id)!;
-        drawDesk(ctx, d, ag.state, now);
-      });
-
-      // Draw agents on top
-      sorted.forEach(ag => {
-        const assigned = sMapRef.current[ag.id];
-
-        // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ State logic ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-        if (assigned === 'working' || assigned === 'thinking') {
-          // Move toward own desk seat
-          const seat = { x: ag.deskX+65, y: ag.deskY+20 };
-          const onDesk = Math.abs(ag.px-seat.x)<6 && Math.abs(ag.py-seat.y)<6;
-          if (!onDesk && ag.state !== 'walking') {
-            ag.tx = seat.x; ag.ty = seat.y;
-            ag.state = 'walking';
-            ag.emote = EMOTE.walking; ag.emoteT = 120;
-          } else if (onDesk) {
-            ag.state = assigned;
-            ag.emote = EMOTE[assigned]; ag.emoteT = 999;
-          }
-        } else if (assigned === 'done') {
-          ag.state = 'done'; ag.emote = EMOTE.done; ag.emoteT = 180;
-        } else {
-          // Idle wander
-          wcd[ag.id] -= dt;
-          if (wcd[ag.id] <= 0 && ag.state !== 'walking') {
-            const [wx,wy] = WANDERS[Math.floor(Math.random()*WANDERS.length)];
-            ag.tx = wx; ag.ty = wy;
-            ag.state = 'walking';
-            ag.emote = EMOTE.walking; ag.emoteT = 100;
-            wcd[ag.id] = Math.random()*700+300;
-          }
-        }
-
-        // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Move ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-        const dx = ag.tx - ag.px, dy = ag.ty - ag.py;
-        const dist = Math.sqrt(dx*dx+dy*dy);
-        if (dist > 2 && ag.state === 'walking') {
-          const spd = 1.5;
-          ag.px += (dx/dist)*spd*(dt/16);
-          ag.py += (dy/dist)*spd*(dt/16);
-        } else if (ag.state === 'walking') {
-          ag.px = ag.tx; ag.py = ag.ty;
-          const next = sMapRef.current[ag.id];
-          ag.state = (next==='working'||next==='thinking') ? next : 'idle';
-          ag.emote = EMOTE[ag.state]; ag.emoteT = ag.state!=='idle'?999:0;
-        }
-
-        // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Animate ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-        ag.emoteT  = Math.max(0, ag.emoteT - dt);
-        ag.typeT  += dt; if (ag.typeT>100){ ag.typeFr++; ag.typeT=0; }
-        ag.walkT  += dt; if (ag.walkT>150){ ag.walkFr=(ag.walkFr+1)%4; ag.walkT=0; }
-
-        drawChar(ctx, ag, now);
-        drawEmote(ctx, ag);
-      });
-
-      rafRef.current = requestAnimationFrame(tick);
-    }
-    rafRef.current = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafRef.current);
-  }, []);
-
-  function setState(id:string, s:AState) { sMapRef.current[id] = s; }
-
-  // ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ SSE streaming ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-  async function run(cmd:string) {
-    if (running || !cmd.trim()) return;
-    setRunning(true);
-    setState('director','thinking');
-    setLines([{ cls:'prompt', text:`orbit > ${cmd}` }]);
-    try {
-      const res = await fetch('/api/crew',{
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({order:cmd}),
-      });
-      if (!res.ok||!res.body){ push({cls:'warn',text:`Error ${res.status}`}); setRunning(false); return; }
-      const reader = res.body.getReader();
-      const dec = new TextDecoder();
-      let buf='';
-      while(true){
-        const {done,value} = await reader.read();
-        if(done) break;
-        buf += dec.decode(value,{stream:true});
-        const parts = buf.split('\n\n');
-        buf = parts.pop()||'';
-        for (const part of parts){
-          const m = part.match(/^data: (.*)$/s); if(!m) continue;
-          let ev:any; try{ev=JSON.parse(m[1]);}catch{continue;}
-          onEvent(ev);
-        }
-      }
-    } catch(e){ push({cls:'warn',text:`Connection lost: ${e instanceof Error ? e.message : String(e)}`}); }
-    finally { setRunning(false); DESKS.forEach(d=>setState(d.id,'idle')); }
-  }
-
-  function onEvent(ev:any){
-    switch(ev.event){
-      case 'system': push({cls:'mut',text:`// ${ev.msg}`}); break;
-      case 'agent_start': {
-        const id = ev.agent as string;
-        setState('director','working');
-        setTimeout(()=>setState(id,'thinking'),300);
-        setTimeout(()=>setState(id,'working'),1800);
-        push({cls:'hdr',text:`ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ ${DESKS.find(d=>d.id===id)?.name||id} ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ`});
-        if(ev.task) push({cls:'mut',text:`// ${ev.task}`});
-        break;
-      }
-      case 'director_plan':
-        push({cls:'info',text:`plan: ${ev.summary}`});
-        push({cls:'mut',text:`crew: ${(ev.crew||[]).join(', ')}`});
-        break;
-      case 'line': push({cls:ev.cls||'mut',text:ev.text}); break;
-      case 'agent_done': setState(ev.agent,'done'); setTimeout(()=>setState(ev.agent,'idle'),3000); break;
-      case 'done': push({cls:'ok',text:'ÃÂ¢ÃÂÃÂ Mission complete ÃÂ¢ÃÂÃÂ crew reported in.'}); push({cls:'prompt',text:'orbit > _'}); break;
-      case 'error': push({cls:'warn',text:`ÃÂ¢ÃÂÃÂ ${ev.msg}`}); break;
-    }
-  }
-
-  return (
-    <div className="oo-root">
-      <style>{CSS}</style>
-
-      {/* Header */}
-      <div className="oo-hd">
-        <span className="oo-hdot" />
-        <span className="oo-htitle">ORBIT <b>OFFICE</b></span>
-        <span className="oo-hsub">pixel-art workstation ÃÂÃÂ· agents run live on your CRM</span>
-        <div className="oo-hpill">
-          <span className={`oo-hled ${running?'on':''}`}/>
-          {running?'WorkingÃÂ¢ÃÂÃÂ¦':'Standby'}
-        </div>
-      </div>
-
-      {/* Body: canvas left, terminal right */}
-      <div className="oo-body">
-
-        <div className="oo-left">
-          <div className="oo-bar">
-            <span className="oo-dots"><i/><i/><i/></span>
-            <span>ORBIT-OFFICE ÃÂÃÂ· FLOOR 1</span>
-          </div>
-          <div className="oo-cw">
-            <canvas ref={canvasRef} width={W} height={H} className="oo-canvas"/>
-          </div>
-          <div className="oo-roster">
-            {DESKS.map(d=>(
-              <div key={d.id} className="oo-mb" style={{'--mc':d.color} as any}>
-                <span className="oo-mled"/>
-                <div>
-                  <div className="oo-mname">{d.name}</div>
-                  <div className="oo-mrole">{d.role}</div>
-                </div>
-                <span className="oo-mstate">{sMapRef.current[d.id]||'idle'}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="oo-right">
-          <div className="oo-bar">
-            <span className="oo-dots"><i/><i/><i/></span>
-            <span>orbit@crew:~/workspace ÃÂ¢ÃÂÃÂ live log</span>
-          </div>
-          <div className="oo-term" ref={termRef}>
-            {lines.map((l,i)=><div key={i} className={`oo-ln ${l.cls}`}>{l.text}</div>)}
-          </div>
-        </div>
-
-      </div>
-
-      {/* Command */}
-      <div className="oo-cmd">
-        <div className="oo-clbl">// send order to crew</div>
-        <div className="oo-crow">
-          <input value={order} onChange={e=>setOrder(e.target.value)}
-            onKeyDown={e=>{if(e.key==='Enter')run(order);}}
-            placeholder="e.g. Create a contact named Alex at TechCorp with a follow-up task"
-            disabled={running}/>
-          <button className="oo-run" onClick={()=>run(order)} disabled={running}>
-            {running?'ÃÂ¢ÃÂÃÂ¦':'RUN'}
-          </button>
-        </div>
-        <div className="oo-chips">
-          {QUICK.map(q=>(
-            <button key={q} className="oo-chip" disabled={running}
-              onClick={()=>{setOrder(q);run(q);}}>{q}</button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+async function runAgent(k:string,order:string){
+(window as any).__OS?.setS(k,'work'); (window as any).__OS?.scr(k,'work');
+tOut('hd','-- '+k.toUpperCase()+' ------');
+await tw(500);
+for(const s of agSteps(k,order)){
+if(s.c)await typeCmd(s.c);
+if(s.out)for(const [cl,tx] of s.out){tOut(cl,tx);await tw(220+Math.random()*140);}
+if(s.p)await tProg(s.p);
+if(s.df)addRow("<span style='color:#a78bfa'>"+s.df[0]+"</span> <span style='color:#36d399'>++ "+s.df[1]+"</span> <span style='color:#ff7a82'>-- "+s.df[2]+"</span>");
+await tw(100);
 }
+(window as any).__OS?.scr(k,'done'); await tw(1800); (window as any).__OS?.scr(k,'idle'); (window as any).__OS?.setS(k,'wander'); (window as any).__OS?.pw(k);
+}
+async function dispatch(order:string){
+if(running||!order.trim())return;
+setRunning(true); setStatus('DISPATCHING');
+tOut('inf','NOVA: all crew to briefing...');
+AGENTS.forEach(a=>(window as any).__OS?.setS(a.key,'meet'));
+await typeCmd('orbit dispatch "'+order+'"'); await tw(1300);
+const crew=route(order);
+tOut('mu','Crew: '+crew.map(k=>k.toUpperCase()).join(', ')); await tw(300);
+AGENTS.forEach(a=>{if(!crew.includes(a.key)&&a.key!=='nova')(window as any).__OS?.setS(a.key,'wander');});
+(window as any).__OS?.setS('nova','wander');
+for(const k of crew){await runAgent(k,order); await tw(150);}
+tOut('ok','Mission complete.'); setStatus('CREW READY'); setRunning(false);
+addRow("<span style='color:#ff5d66'>orbit &#10095; </span><span style='display:inline-block;width:6px;height:11px;background:#e8303a;vertical-align:-2px;animation:ocur 1s steps(1) infinite'></span>");
+}
+useEffect(()=>{
+if(!document.getElementById('orb-css')){const s=document.createElement('style');s.id='orb-css';s.textContent='@keyframes ocur{50%{opacity:0}}';document.head.appendChild(s);}
+tOut('mu','Orbit Mission Deck online — 6-agent crew on deck.');
+tOut('mu','Crew wanders. Dispatch a mission to lock them in.');
+addRow("<span style='color:#ff5d66'>orbit &#10095; </span><span style='display:inline-block;width:6px;height:11px;background:#e8303a;vertical-align:-2px;animation:ocur 1s steps(1) infinite'></span>");
+},[]);
 
-// ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ CSS ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
-const CSS = `
-.oo-root{font-family:'DM Sans',system-ui,sans-serif;color:#eceaf4}
-/* header */
-.oo-hd{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
-.oo-hdot{width:10px;height:10px;border-radius:50%;background:#e8303a;box-shadow:0 0 10px #e8303a;flex-shrink:0}
-.oo-htitle{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:18px;letter-spacing:.12em}
-.oo-htitle b{color:#e8303a}
-.oo-hsub{font-family:'JetBrains Mono',monospace;font-size:10px;color:#665f73;letter-spacing:.1em;text-transform:uppercase}
-.oo-hpill{margin-left:auto;display:flex;align-items:center;gap:7px;border:1px solid #1e1630;padding:5px 10px;border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:10px;color:#9a93a8}
-.oo-hled{width:7px;height:7px;border-radius:50%;background:#4a3060}
-.oo-hled.on{background:#36d399;box-shadow:0 0 8px #36d399;animation:oo-pulse 1.4s infinite}
-@keyframes oo-pulse{50%{opacity:.4}}
-/* layout */
-.oo-body{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media(max-width:820px){.oo-body{grid-template-columns:1fr}}
-/* panels */
-.oo-left,.oo-right{background:#0c0915;border:1px solid #1e1630;border-radius:14px;overflow:hidden}
-.oo-bar{display:flex;align-items:center;gap:8px;padding:7px 12px;border-bottom:1px solid #1e1630;background:#0a0812;font-family:'JetBrains Mono',monospace;font-size:10px;color:#665f73;text-transform:uppercase;letter-spacing:.08em}
-.oo-dots{display:flex;gap:5px}
-.oo-dots i{width:9px;height:9px;border-radius:50%;display:inline-block}
-.oo-dots i:nth-child(1){background:#ff5f57}
-.oo-dots i:nth-child(2){background:#febc2e}
-.oo-dots i:nth-child(3){background:#28c840}
-/* canvas */
-.oo-cw{padding:6px;background:#0c0915}
-.oo-canvas{width:100%;height:auto;display:block;image-rendering:pixelated;image-rendering:crisp-edges;border-radius:6px}
-/* roster */
-.oo-roster{display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:8px}
-.oo-mb{display:flex;align-items:center;gap:7px;background:#0e0b18;border:1px solid #2a1f3a;border-radius:8px;padding:6px 9px}
-.oo-mled{width:6px;height:6px;border-radius:50%;background:var(--mc,#4a3060);box-shadow:0 0 5px var(--mc,#4a3060);flex-shrink:0}
-.oo-mname{font-family:'Rajdhani',sans-serif;font-weight:600;font-size:12px;line-height:1}
-.oo-mrole{font-family:'JetBrains Mono',monospace;font-size:8px;color:#665f73;text-transform:uppercase;margin-top:2px}
-.oo-mstate{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:8px;color:#665f73;text-transform:uppercase}
-/* terminal */
-.oo-term{height:clamp(260px,42vh,420px);overflow-y:auto;padding:10px 12px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.65;background:#060410}
-.oo-term::-webkit-scrollbar{width:6px}
-.oo-term::-webkit-scrollbar-thumb{background:#1e1630;border-radius:3px}
-.oo-ln{white-space:pre-wrap;word-break:break-word;animation:oo-fd .18s ease}
-@keyframes oo-fd{from{opacity:0}}
-.oo-ln.prompt{color:#ff5d66}.oo-ln.ok{color:#36d399}.oo-ln.warn{color:#f4b942}
-.oo-ln.info{color:#37e0c5}.oo-ln.mut{color:#9a93a8}.oo-ln.hdr{color:#665f73}.oo-ln.cmd{color:#eceaf4;font-weight:500}
-/* command */
-.oo-cmd{margin-top:12px;background:#0c0915;border:1px solid #1e1630;border-radius:14px;padding:12px}
-.oo-clbl{font-family:'JetBrains Mono',monospace;font-size:10px;color:#665f73;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
-.oo-crow{display:flex;gap:8px}
-.oo-crow input{flex:1;min-width:0;background:#0b0810;border:1px solid #2a1f3a;border-radius:10px;color:#eceaf4;font-family:'DM Sans',sans-serif;font-size:15px;padding:12px 14px}
-.oo-crow input:focus{outline:none;border-color:#e8303a;box-shadow:0 0 0 3px #e8303a1a}
-.oo-run{border:none;border-radius:10px;padding:0 20px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:15px;letter-spacing:.07em;color:#fff;background:linear-gradient(180deg,#e8303a,#a4131c);box-shadow:0 0 14px #e8303a55}
-.oo-run:disabled{filter:grayscale(.7) brightness(.6);box-shadow:none;cursor:not-allowed}
-.oo-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
-.oo-chip{font-size:12px;color:#9a93a8;background:#100c1a;border:1px solid #2a1f3a;border-radius:999px;padding:6px 12px;cursor:pointer;text-align:left}
-.oo-chip:hover{border-color:#e8303a;color:#eceaf4}
-.oo-chip:disabled{opacity:.45;cursor:not-allowed}
-`;
+return (
+<div style={{display:'flex',flexDirection:'column',gap:10,padding:16,background:'#030a12',minHeight:'100vh'}}>
+<div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'8px 18px',background:'linear-gradient(180deg,#0a1e36,#040e1c)',borderRadius:8,border:'1px solid #0e2840'}}>
+<div><div style={{fontSize:17,fontWeight:900,letterSpacing:'.15em',color:'#00e5ff',textShadow:'0 0 18px #00e5ff88',fontFamily:'Orbitron,monospace'}}>&#9651; ORBIT</div><div style={{fontSize:8,letterSpacing:'.2em',color:'#5a8aaa',fontFamily:'Orbitron,monospace'}}>MISSION COMMAND VESSEL &middot; DECK A</div></div>
+<div style={{display:'flex',gap:14,alignItems:'center',fontSize:10,fontFamily:'JetBrains Mono,monospace'}}>
+{[['#36d399','ENGINES'],['#36d399','SHIELDS'],['#f4b942','COMMS']].map(([c,l])=><span key={l}><span style={{display:'inline-block',width:7,height:7,borderRadius:'50%',background:c,marginRight:4}}/>{l}</span>)}
+<span style={{color:'#00e5ff'}}>{new Date().toLocaleTimeString('en-GB',{hour12:false})} UTC</span>
+<span><span style={{display:'inline-block',width:7,height:7,borderRadius:'50%',background:running?'#e8303a':'#36d399',marginRight:4}}/>{status}</span>
+</div>
+</div>
+<div style={{display:'flex',gap:16,padding:'6px 14px',background:'#040c1a',border:'1px solid #0e2840',borderRadius:8,fontSize:10,fontFamily:'JetBrains Mono,monospace'}}>
+<span style={{color:'#00e5ff'}}>CONTACTS: {stats.contacts}</span>
+<span style={{color:'#f0c96b'}}>DEALS: {stats.deals}</span>
+<span style={{color:'#36d399'}}>CREW: 6 ACTIVE</span>
+<span style={{color:'#a78bfa'}}>AI: ONLINE</span>
+</div>
+<div style={{borderRadius:8,overflow:'hidden',border:'1px solid #0e2840'}}>
+<svg ref={svgRef} style={{width:'100%',display:'block'}} aria-label='Mission Deck'/>
+</div>
+<div style={{borderRadius:8,overflow:'hidden',border:'1px solid #0e2840'}}>
+<div style={{display:'flex',gap:7,alignItems:'center',padding:'6px 12px',background:'#030d1c',borderBottom:'1px solid #0e2840'}}>
+<span style={{display:'flex',gap:4}}>{['#ff5f57','#febc2e','#28c840'].map(c=><i key={c} style={{width:9,height:9,borderRadius:'50%',background:c,display:'inline-block'}}/>)}</span>
+<span style={{fontSize:9,letterSpacing:'.15em',color:'#2a4a6a',fontFamily:'JetBrains Mono,monospace',textTransform:'uppercase'}}>orbit@crew ~/orbitcrm</span>
+</div>
+<div ref={termRef} style={{height:200,overflowY:'auto',padding:'10px 14px',background:'#020910'}}/>
+</div>
+<div style={{background:'#071628',border:'1px solid #0e2840',borderRadius:8,padding:12}}>
+<div style={{fontSize:7,letterSpacing:'.2em',color:'#2a4a6a',fontFamily:'Orbitron,monospace',textTransform:'uppercase',marginBottom:8}}>Dispatch Order</div>
+<div style={{display:'flex',gap:8}}>
+<input value={cmd} onChange={e=>setCmd(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')dispatch(cmd);}} placeholder='e.g. Find 100 businesses that need websites' disabled={running} style={{flex:1,background:'#020b18',border:'1px solid #0e2840',borderRadius:6,color:'#dff0ff',fontFamily:'JetBrains Mono,monospace',fontSize:13,padding:'10px 12px',outline:'none'}}/>
+<button onClick={()=>dispatch(cmd)} disabled={running} style={{background:'linear-gradient(180deg,#d42030,#8a0f18)',border:'none',borderRadius:6,padding:'0 20px',color:'#fff',fontFamily:'Orbitron,monospace',fontSize:9,fontWeight:700,letterSpacing:'.1em',cursor:running?'not-allowed':'pointer',opacity:running?.6:1}}>DISPATCH</button>
+</div>
+<div style={{display:'flex',flexWrap:'wrap',gap:6,marginTop:8}}>
+{CHIPS.map(q=><button key={q} onClick={()=>{if(!running){setCmd(q);dispatch(q);}}} disabled={running} style={{fontFamily:'JetBrains Mono,monospace',fontSize:10,color:'#5a8aaa',background:'#030c1c',border:'1px solid #0e2840',borderRadius:5,padding:'5px 10px',cursor:running?'not-allowed':'pointer'}}>{q}</button>)}
+</div>
+</div>
+</div>
+);
+}

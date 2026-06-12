@@ -74,11 +74,13 @@ export async function POST(req: NextRequest) {
         const planRaw = await callClaude({
           max_tokens: 700,
           system:
-            'You are the Director of an autonomous build crew inside OrbitCRM (a CRM app). ' +
-            'Given the user\'s order, decide which crew members are needed and give each a clear task. ' +
-            'Crew: "researcher" (gathers intel & analyzes CRM data), "webdev" (writes web/landing/UI code & copy), ' +
-            '"appdev" (executes real actions in the CRM database via tools: create contacts, deals, tasks, automations, pipeline summaries). ' +
-            'Respond ONLY with JSON: {"summary":"one line","steps":[{"agent":"appdev","task":"..."}]}. Use 1-3 steps, only the agents truly needed.',
+            'You are the Director of an autonomous LEAD GENERATION crew inside OrbitCRM (a CRM app). ' +
+            'Your crew\'s #1 job is getting leads into the CRM. Given the user\'s order, decide which crew members are needed and give each a clear task. ' +
+            'Crew: "leadgen" (THE PRIMARY AGENT — prospects, qualifies, and CREATES real leads/contacts in the CRM via tools, plus deals and follow-up tasks for hot ones), ' +
+            '"researcher" (gathers intel & analyzes CRM data to find target markets and ideal customer profiles), ' +
+            '"appdev" (executes other CRM actions via tools: automations, pipeline work, bulk updates). ' +
+            'For anything involving leads, prospects, outreach, or growing the pipeline → use leadgen. ' +
+            'Respond ONLY with JSON: {"summary":"one line","steps":[{"agent":"leadgen","task":"..."}]}. Use 1-3 steps, only the agents truly needed.',
           messages: [{ role: 'user', content: order }],
         });
 
@@ -96,22 +98,30 @@ export async function POST(req: NextRequest) {
 
         // ---------- CREW: run each step for real ----------
         for (const step of steps) {
-          const agent = ['researcher', 'webdev', 'appdev'].includes(step.agent) ? step.agent : 'appdev';
+          const agent = ['researcher', 'webdev', 'appdev', 'leadgen'].includes(step.agent) ? step.agent : 'leadgen';
           const task = step.task || order;
 
           send('agent_start', { agent, label: `${agent} — working`, task });
 
-          if (agent === 'appdev') {
+          if (agent === 'appdev' || agent === 'leadgen') {
             // REAL agentic tool loop — actually acts on the DB.
+            const system = agent === 'leadgen'
+              ? 'You are the Lead Gen agent for this OrbitCRM workspace. Your job is to GET LEADS. ' +
+                'Use the tools to ACTUALLY create qualified prospect contacts in the CRM (realistic names, ' +
+                'companies, emails, phones matched to the target market in the task), set a fitting source, ' +
+                'create deals for the strongest prospects, and add follow-up tasks for the hottest ones. ' +
+                'Be decisive: call tools to make real changes, then briefly report how many leads you added. ' +
+                'Do not ask for confirmation.'
+              : 'You are the App Dev agent for this OrbitCRM workspace. Use the available tools to ACTUALLY ' +
+                'perform the task in the database. Be decisive: call tools to make real changes, then briefly ' +
+                'confirm what you did. Do not ask for confirmation.';
+
             const convo: any[] = [{ role: 'user', content: task }];
 
             for (let turn = 0; turn < 4; turn++) {
               const data = await callClaude({
                 max_tokens: 1200,
-                system:
-                  'You are the App Dev agent for this OrbitCRM workspace. Use the available tools to ACTUALLY ' +
-                  'perform the task in the database. Be decisive: call tools to make real changes, then briefly ' +
-                  'confirm what you did. Do not ask for confirmation.',
+                system,
                 messages: convo,
                 tools: AI_TOOLS,
               });

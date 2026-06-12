@@ -71,5 +71,14 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }
   }
 
+  // fire contact_created automations + execute instant steps NOW (welcome SMS)
+  if (contactId) {
+    try {
+      const { enrollContactInTrigger, processContactRunsNow } = await import('@/lib/engine');
+      await enrollContactInTrigger(admin, ws, contactId, 'contact_created');
+      await processContactRunsNow(admin, ws, contactId);
+    } catch { /* non-fatal */ }
+  }
+
   return NextResponse.json({ ok: true, redirect: form.redirect_url || null }, { headers: CORS });
 }

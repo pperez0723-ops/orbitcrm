@@ -197,22 +197,23 @@ export default function Jarvis() {
   }, [speak]);
 
   const listen = useCallback(() => {
-    const SR = (window as Record<string,unknown>).SpeechRecognition as (new () => unknown) | undefined
-      || (window as Record<string,unknown>).webkitSpeechRecognition as (new () => unknown) | undefined;
+    const win = window as unknown as Record<string, unknown>;
+    const SR = (win.SpeechRecognition || win.webkitSpeechRecognition) as (new () => unknown) | undefined;
     if (!SR) { speak('Voice input needs Chrome, sir.'); return; }
     if (mode === 'listening') { (recogRef.current as {stop:()=>void} | null)?.stop(); setMode('idle'); return; }
     if ('speechSynthesis' in window) speechSynthesis.cancel();
     const r = new SR() as Record<string, unknown>;
     r.lang = 'en-US'; r.interimResults = false; r.continuous = false;
-    r.onresult = (e: Record<string, unknown>) => {
-      const results = e.results as {[i:number]:{[j:number]:{transcript:string}}};
-      const t = results[0][0].transcript.trim();
+    r.onresult = (e: unknown) => {
+      const ev = e as {results:{[i:number]:{[j:number]:{transcript:string}}}};
+      const t = ev.results[0][0].transcript.trim();
       if (t) handle(t);
     };
     r.onend = () => { setMode((m) => (m === 'listening' ? 'idle' : m)); };
-    r.onerror = (ev: Record<string,unknown>) => {
+    r.onerror = (ev: unknown) => {
       setMode('idle');
-      if (ev.error === 'not-allowed') speak('I need microphone permission, sir.');
+      const e = ev as {error?: string};
+      if (e.error === 'not-allowed') speak('I need microphone permission, sir.');
     };
     recogRef.current = r;
     setMode('listening'); setTranscript('');

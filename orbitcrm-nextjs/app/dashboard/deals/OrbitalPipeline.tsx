@@ -198,9 +198,7 @@ return(
 <svg ref={svgRef} style={{position:'absolute',inset:0,width:'100%',height:'100%',overflow:'visible',pointerEvents:'none'}} viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet">
 <defs>
 <filter id="glow"><feGaussianBlur stdDeviation="3" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-<radialGradient id="coreGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stopColor="#37e0c5" stopOpacity="0.15"/><stop offset="100%" stopColor="#37e0c5" stopOpacity="0"/></radialGradient>
 </defs>
-<ellipse cx="400" cy="250" rx="250" ry="180" fill="url(#coreGlow)" opacity="0.4"/>
 {RING_SIZES.slice(0,stages.length||1).map((r,i)=>(
 <ellipse key={i} cx="400" cy="250" rx={r.rx} ry={r.ry} fill="none" stroke="rgba(55,224,197,0.12)" strokeWidth="1" strokeDasharray="4 8"/>
 ))}

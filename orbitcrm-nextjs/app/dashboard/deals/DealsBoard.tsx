@@ -140,21 +140,21 @@ export default function DealsBoard({ workspaceId, pipelineId, stages, initialDea
                                   </div>
                                         )}
                                         <div>
-                                                      <label style={{ fontSize: 11, color: 'var(--text-dim)', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}>Deal Title</label>label>
+                                                      <label style={{ fontSize: 11, color: 'var(--text-dim)', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}>Deal Title</label>
                                                       <input value={editTitle} onChange={(e) => setEditTitle(e.target.value)}
                                                                         style={{ width: '100%', background: 'var(--black3)', border: '1px solid var(--border-dim)', borderRadius: 8, padding: '8px 12px', color: 'inherit', fontSize: 14, boxSizing: 'border-box' }} />
                                         </div>
                                         <div>
-                                                      <label style={{ fontSize: 11, color: 'var(--text-dim)', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}>Value ($)</label>label>
+                                                      <label style={{ fontSize: 11, color: 'var(--text-dim)', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}>Value ($)</label>
                                                       <input type="number" value={editValue} onChange={(e) => setEditValue(e.target.value)}
                                                                         style={{ width: '100%', background: 'var(--black3)', border: '1px solid var(--border-dim)', borderRadius: 8, padding: '8px 12px', color: 'inherit', fontSize: 14, boxSizing: 'border-box' }} />
                                         </div>
                                         <div>
-                                                      <label style={{ fontSize: 11, color: 'var(--text-dim)', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}>Stage</label>label>
+                                                      <label style={{ fontSize: 11, color: 'var(--text-dim)', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}>Stage</label>
                                                       <select value={editStage} onChange={(e) => setEditStage(e.target.value)}
                                                                         style={{ width: '100%', background: 'var(--black3)', border: '1px solid var(--border-dim)', borderRadius: 8, padding: '8px 12px', color: 'inherit', fontSize: 14, boxSizing: 'border-box' }}>
-                                                        {stages.map((s) => <option key={s.id} value={s.id}>{s.name}</option>option>)}
-                                                      </select>select>
+                                                        {stages.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                                      </select>
                                         </div>
                               {selectedStage && (
                                   <div style={{ display: 'flex', gap: 8 }}>
@@ -180,19 +180,19 @@ export default function DealsBoard({ workspaceId, pipelineId, stages, initialDea
           {open && (
                   <div className="modal-bg" onClick={(e) => e.target === e.currentTarget && setOpen(false)}>
                             <div className="modal">
-                                        <h2>New Deal</h2>h2>
+                                        <h2>New Deal</h2>
                                         <div className="fg" style={{ marginBottom: 12 }}>
-                                                      <label>Contact</label>label>
+                                                      <label>Contact</label>
                                                       <select value={f.contact_id} onChange={(e) => setF({ ...f, contact_id: e.target.value })}>
-                                                                      <option value="">— select a contact —</option>option>
+                                                                      <option value="">— select a contact —</option>
                                                         {contacts.map((c) => (
-                                      <option key={c.id} value={c.id}>{c.fname} {c.lname || ''} {c.company ? `(${c.company})` : ''}</option>option>
+                                      <option key={c.id} value={c.id}>{c.fname} {c.lname || ''} {c.company ? `(${c.company})` : ''}</option>
                                     ))}
-                                                      </select>select>
+                                                      </select>
                                         </div>
                                         <div className="frow">
-                                                      <div className="fg"><label>Title</label>label><input value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder="Deal name…" /></div>
-                                                      <div className="fg"><label>Value ($)</label>label><input type="number" value={f.value} onChange={(e) => setF({ ...f, value: e.target.value })} placeholder="0" /></div>
+                                                      <div className="fg"><label>Title</label><input value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder="Deal name…" /></div>
+                                                      <div className="fg"><label>Value ($)</label><input type="number" value={f.value} onChange={(e) => setF({ ...f, value: e.target.value })} placeholder="0" /></div>
                                         </div>
                                         <div className="mfoot">
                                                       <button className="btn-ghost" onClick={() => setOpen(false)}>Cancel</button>
